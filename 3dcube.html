@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <title>3D魔方</title>
+  <meta charset="UTF-8">
+  <style>
+  .con{margin:0 auto;width:60rem;}
+  .ttl{text-align:center;font-size:2.8rem;}
+  .cubes{margin:1rem auto;}
+  .act{margin:1rem auto;font-size:2rem;}
+  .act a{display:inline-block;width:7.8rem;height:5rem;line-height:5rem;margin:1rem;border:1px solid #333;text-align:center;cursor:default;}
+  .act input{width:47rem;height:5rem;font-size:2rem;}
+  @media (min-width: 1020px) {
+    .con{width:30rem;}
+    .act a{width:4.4rem;height:3.5rem;line-height:3.5rem;margin:0.2rem;}
+    .act input{width:23.5rem;}
+  }
+  </style>
+</head>
+<body>
+<div class="con">
+  <div class="ttl">纯 HTML+CSS 3D魔方</div>
+  <div class="cubes"><div id="cubes"></div></div>
+  <div class="act">
+    <div><a>F</a><a>R</a><a>U</a><a>B</a><a>L</a><a>D</a></div>
+    <div><a>F'</a><a>R'</a><a>U'</a><a>B'</a><a>L'</a><a>D'</a></div>
+    <div>
+    输入公式执行：(空格分隔)<br>
+    <input type="text" value="" placeholder="示例：F R2 U'" id="inp" onkeyup="this.value=this.value.toUpperCase()" />
+    <a>执行</a>
+    </div>
+  </div>
+</div>
+<script>
+var hkcube = {
+  csss : '.hkcubebody{width:540px;height:540px;background:lightgray;}.hkcubes{width:300px;height:300px;position:relative;z-index:0;left:110px;top:110px;transform-style:preserve-3d;transform:rotateX(-30deg) rotateY(-30deg);transform-origin:150px 150px -100px;}.hkcube{position:absolute;z-index:1;left:0;top:0;width:100px;height:100px;transform-style:preserve-3d;}.hkcube span{box-sizing:border-box;border:5px solid #000;border-radius:15px;display: block;width: 100px;height: 100px;position: absolute;font-size:30px;text-align:center;line-height:100px;cursor:default;}.hkcube .hkin_front{transform: rotateY(0deg) translateZ(50px);}.hkcube .hkin_back{transform: translateZ(-50px) rotateY(-180deg);}.hkcube .hkin_left{transform: rotateY(-90deg) translateZ(50px);}.hkcube .hkin_right{transform: rotateY(90deg) translateZ(50px);}.hkcube .hkin_top{transform: rotateX(90deg) translateZ(50px);}.hkcube .hkin_bottom{transform: rotateX(-90deg) translateZ(50px);}',
+  clrs : [['#fef','#000']/*0右*/,['#0ff','#000']/*1左*/,['#808','#fff']/*2上*/,['#f00','#fff']/*3下*/,['#080','#fff']/*4前*/,['#ff0','#000']/*5后*/,['#ff0','#ff0']/*6空*/],
+  txts : { //各个面中每格的文字 第一位: 0~2前中后3排, 第二位: 1~9一排的9个位置, 第三位: 0~5所在面
+        '020' : '9←', '050' : '6←', '080' : '3←', '120' : '8←', '150' : '5←', '180' : '2←', '220' : '7←', '250' : '4←', '280' : '1←', // 右white
+        '001' : 'S↓', '031' : 'T↓', '061' : 'U↓', '101' : 'V↓', '131' : '*↓', '161' : 'W↓', '201' : 'X↓', '231' : 'Y↓', '261' : 'Z↓', // 左cyan
+        '002' : 'L←', '012' : 'K←', '022' : 'J←', '102' : 'O←', '112' : 'N←', '122' : 'M←', '202' : 'R←', '212' : 'Q←', '222' : 'P←', // 上purple
+        '063' : 'A→', '073' : 'B→', '083' : 'C→', '163' : 'D→', '173' : 'E→', '183' : 'F→', '263' : 'G→', '273' : 'H→', '283' : 'I→', // 下red
+        '004' : '9←', '014' : '8←', '024' : '7←', '034' : '6←', '044' : '5←', '054' : '4←', '064' : '3←', '074' : '2←', '084' : '1←', // 前green
+        '225' : '9←', '215' : '8←', '205' : '7←', '255' : '6←', '245' : '5←', '235' : '4←', '285' : '3←', '275' : '2←', '265' : '1←'  // 后yellow
+  },
+  cutewidth : 100, //正方形,固定
+  mousex : -1, mousey : -1, nowx : -1, nowy : -1, mousepid : '',
+  that : null,
+  zoom : 1, //缩放比例 (0 ~ 1]
+  containerId : '',
+  waitTime : 300, //ms
+
+  $ : function(id){return document.getElementById(id);},
+  
+  initGame : function (conid){
+    that = this;
+    that.$(conid).innerHTML = '';
+    that.$(conid).style.zoom = '1';
+    that.containerId = conid;
+    style = document.createElement("style");
+    style.innerHTML = that.csss;
+    document.head.appendChild(style);
+    var str = '';
+    var der = {"←":0,"↑":1,"→":2,"↓":3};
+    for(i=0; i<27; i++){
+        x = parseInt(i / 9); //第几排
+        y = i % 9; //每排的9个
+        l = y % 3; //第几列
+        t = parseInt(y / 3); //第几层
+        tx = l*that.cutewidth; //计算x轴位置
+        ty = t*that.cutewidth; //计算y轴位置
+        tz = -x*that.cutewidth; //计算z轴位置
+        FF = that.txts[''+x+y+'4']?that.txts[''+x+y+'4']:'';
+        BB = that.txts[''+x+y+'5']?that.txts[''+x+y+'5']:'';
+        LL = that.txts[''+x+y+'1']?that.txts[''+x+y+'1']:'';
+        RR = that.txts[''+x+y+'0']?that.txts[''+x+y+'0']:'';
+        TT = that.txts[''+x+y+'2']?that.txts[''+x+y+'2']:'';
+        BM = that.txts[''+x+y+'3']?that.txts[''+x+y+'3']:'';
+        str += '<div class="hkcube" id="hkcube'+i+'" tx="'+tx+'" ty="'+ty+'" tz="'+tz+'" rx="0" ry="0" rz="0" style="transform:translateX('+tx+'px) translateY('+ty+'px) translateZ('+tz+'px);">';
+        str += '<span class="hkin_front" d="'+(FF==''?0:der[FF.charAt(1)])+'" t="'+FF+'" style="background:'+(FF==''?that.clrs[6][0]:(that.clrs[4][0] +';color:'+that.clrs[4][1]))+'">'+FF+'</span>';
+        str += '<span class="hkin_back" d="'+(BB==''?0:der[BB.charAt(1)])+'" t="'+BB+'" style="background:'+(BB==''?that.clrs[6][0]:(that.clrs[5][0] +';color:'+that.clrs[5][1]))+'">'+BB+'</span>';
+        str += '<span class="hkin_left" d="'+(LL==''?0:der[LL.charAt(1)])+'" t="'+LL+'" style="background:'+(LL==''?that.clrs[6][0]:(that.clrs[1][0] +';color:'+that.clrs[1][1]))+'">'+LL+'</span>';
+        str += '<span class="hkin_right" d="'+(RR==''?0:der[RR.charAt(1)])+'" t="'+RR+'" style="background:'+(RR==''?that.clrs[6][0]:(that.clrs[0][0] +';color:'+that.clrs[0][1]))+'">'+RR+'</span>';
+        str += '<span class="hkin_top" d="'+(TT==''?0:der[TT.charAt(1)])+'" t="'+TT+'" style="background:'+(TT==''?that.clrs[6][0]:(that.clrs[2][0] +';color:'+that.clrs[2][1]))+'">'+TT+'</span>';
+        str += '<span class="hkin_bottom" d="'+(BM==''?0:der[BM.charAt(1)])+'" t="'+BM+'" style="background:'+(BM==''?that.clrs[6][0]:(that.clrs[3][0] +';color:'+that.clrs[3][1]))+'">'+BM+'</span></div>';
+    }
+    that.$(conid).innerHTML = '<div class="hkcubebody"><div class="hkcubes" id="hkcubes">'+str+'</div></div>';
+    that.$(conid).onselectstart = function(){return false;}
+    that.zoom = parseInt(that.$(conid).clientWidth) / 540;
+    that.zoom == 0 ? (that.zoom = 1) : that.$(conid).style.zoom = that.zoom;
+    
+    that.$(conid).addEventListener('mousedown', that.conMouseDown);
+    that.$(conid).addEventListener('mousemove', that.mouseMove);
+    that.$(conid).addEventListener('mouseup', that.conMouseUp);
+    that.$('hkcubes').addEventListener('mousedown', that.mouseDown);
+    that.$('hkcubes').addEventListener('mousemove', that.mouseMove);
+    that.$('hkcubes').addEventListener('mouseup', that.mouseUp);
+    
+    that.$(conid).addEventListener('touchstart', that.conMouseDown);
+    that.$(conid).addEventListener('touchmove', that.mouseMove);
+    that.$(conid).addEventListener('touchend', that.conMouseUp);
+    that.$('hkcubes').addEventListener('touchstart', that.mouseDown);
+    that.$('hkcubes').addEventListener('touchmove', that.mouseMove);
+    that.$('hkcubes').addEventListener('touchend', that.mouseUp);
+  },
+
+  mouseDown : function (e){console.log(e);
+    if (e.type === 'touchstart') {
+      e.preventDefault();
+      e = e.touches[0];
+    }
+    var pid = '', tagcls = '';
+    var tag = e.target.tagName.toLowerCase();
+    if(tag == 'span') {
+      pid = '' + e.target.parentNode.id;
+      tagcls = '' + e.target.className;
+    } else if(tag == 'text') {
+      pid = '' + e.target.parentNode.parentNode.parentNode.id;
+      tagcls = '' + e.target.parentNode.parentNode.className;
+    } else if(tag == 'svg') {
+      pid = '' + e.target.parentNode.parentNode.id;
+      tagcls = '' + e.target.parentNode.className;
+    }
+    if(pid.substring(0,6) == 'hkcube'){
+      that.nowx = that.mousex = e.clientX;
+      that.nowy = that.mousey = e.clientY;
+      that.mousepid = pid;
+      that.tagcls = tagcls;
+      //var prect = that.$('hkcubes').parentNode.getBoundingClientRect();
+      //console.log('['+(that.mousex - prect.left) +','+(that.mousey - prect.top)+']'); //可用于下面chkInReck四角定位用
+    }
+  },
+  
+  conMouseDown : function (e){
+    if (e.type === 'touchstart') {
+      e.preventDefault();
+      e = e.touches[0];
+    }
+    var tag = e.target.tagName.toLowerCase();
+    var pid = '' + e.target.parentNode.id;//console.log(pid);
+    if((tag == 'div') && (pid == that.containerId)){
+      that.nowx = that.mousex = e.clientX;
+      that.nowy = that.mousey = e.clientY;
+      that.mousepid = pid;
+    }
+  },
+  
+  mouseMove : function(e){
+    if (e.type === 'touchmove') {
+      e.preventDefault();
+      e = e.touches[0];
+    }
+    that.nowx = e.clientX;
+    that.nowy = e.clientY;
+  },
+
+  conMouseUp : function(){
+    if(that.mousepid.indexOf('hkcube') == 0){ that.mouseUp(); return; }
+    if(that.mousex < 0 || that.mousey < 0) return; //不在魔方内
+    var x = that.nowx - that.mousex;
+    var y = that.nowy - that.mousey;
+    if((Math.abs(x) < 15) && (Math.abs(y) < 15)) return; //小范围移动当成点击
+    if(Math.abs(x) <= Math.abs(y)) {
+      if(y < 0){ //上移
+        that.flu3d();
+        that.fmu3d();
+        that.fru3d();
+      } else { //下移
+        that.fld3d();
+        that.fmd3d();
+        that.frd3d();
+      }
+    }else{
+      if(x > 0){ //右移
+        that.ftr3d();
+        that.fmr3d();
+        that.fbr3d();
+      } else { //左移
+        that.ftl3d();
+        that.fml3d();
+        that.fbl3d();
+      }
+    }
+    that.mousex = that.mousey = that.nowx = that.nowy = -1; that.mousepid = '';
+  },
+  
+  mouseUp : function () {
+    if((that.mousepid == 'cubes')){ that.conMouseUp(); return; }
+    if(that.mousex < 0 || that.mousey < 0) return; //不在魔方内
+    var x = that.nowx - that.mousex;
+    var y = that.nowy - that.mousey;
+    if((Math.abs(x) < 15) && (Math.abs(y) < 15)) return; //小范围移动当成点击
+    var d, f, a, b, c, p; //方向,面, abc临时变量
+    var pid = parseInt(that.mousepid.replace('hkcube',''));
+    var prect = that.$('hkcubes').parentNode.getBoundingClientRect();
+    //f = that.chkInRect(that.mousex-prect.left,that.mousey-prect.top); //这个在手机端不是很正确
+    f = that.tagcls.substr(5,1); //hkin_top, hkin_right, hkin_front => t,r,f
+    a = pid % 3; //右中右三层
+    b = parseInt(pid / 9); //前中后三层
+    c = parseInt((pid % 9) / 3); //上中下三层
+    
+    if(Math.abs(x) <= Math.abs(y)) {
+      if(y < 0){ d = 'duu'; } else { d = 'dud'; } //上下移动
+    }else{
+      if(x > 0){ d = 'rlr'; } else { d = 'rll'; } //左右移动
+    }
+    //if(f == '') { return; }
+    if(f == 'f'){
+      if(d[0] == 'r'){
+        if(c == 0){ p = 't'; }
+        if(c == 1){ p = 'm'; }
+        if(c == 2){ p = 'b'; }
+      }else{
+        if(a == 0){ p = 'l'; }
+        if(a == 1){ p = 'm'; }
+        if(a == 2){ p = 'r'; }
+      }
+    }
+    if((f == 'r')){
+      if(d[0] == 'r'){
+        if(c == 0){ p = 't'; }
+        if(c == 1){ p = 'm'; }
+        if(c == 2){ p = 'b'; }
+      }else{
+        if(b == 0){ p = 'l'; }
+        if(b == 1){ p = 'm'; }
+        if(b == 2){ p = 'r'; }
+      }
+    }
+    if(f == 't'){
+      if(d[0] == 'r'){
+        if(b == 0){ p = 'b'; } //顶层后层作为上
+        if(b == 1){ p = 'm'; } //中
+        if(b == 2){ p = 't'; } //顶层前层作为下
+      }else{
+        if(a == 0){ p = 'l'; }
+        if(a == 1){ p = 'm'; }
+        if(a == 2){ p = 'r'; }
+      }
+    }
+    fun = ''+f+p+d[2]+'3d';
+    //console.log(fun);
+    exec = 'hkcube.'+fun+'();';
+    if(hkcube.hasOwnProperty(fun)) eval(exec);
+    that.mousex = that.mousey = that.nowx = that.nowy = -1; that.mousepid = '';
+  },
+
+  //判断鼠标当前点击在哪个面上
+  chkInRect : function (x, y){
+    //注意: 网页坐标与数学坐标有些区别, 网页坐标是左上角为[0,0], 数学坐标是左下角是[0,0],
+    //     所以数学坐标图形是网页坐标图形的垂直镜像(向上翻就是了)
+    var arrt = [[207,36]/*上*/,[456,110]/*右*/,[312,231]/*下*/,[61,160]/*左*/]; //top
+    var arrf = [[60,169]/*上左*/,[309,243]/*上右*/,[308,490]/*下右*/,[58,416]/*下左*/]; //front
+    var arrr = [[318,241]/*上左*/,[460,117]/*上右*/,[463,364]/*下右*/,[319,490]/*下左*/]; //right
+    if(that.zoom > 0 && that.zoom != 1){
+      arrt = [[parseInt(arrt[0][0]*that.zoom),parseInt(arrt[0][1]*that.zoom)],[parseInt(arrt[1][0]*that.zoom),parseInt(arrt[1][1]*that.zoom)],[parseInt(arrt[2][0]*that.zoom),parseInt(arrt[2][1]*that.zoom)],[parseInt(arrt[3][0]*that.zoom),parseInt(arrt[3][1]*that.zoom)]];
+      arrf = [[parseInt(arrf[0][0]*that.zoom),parseInt(arrf[0][1]*that.zoom)],[parseInt(arrf[1][0]*that.zoom),parseInt(arrf[1][1]*that.zoom)],[parseInt(arrf[2][0]*that.zoom),parseInt(arrf[2][1]*that.zoom)],[parseInt(arrf[3][0]*that.zoom),parseInt(arrf[3][1]*that.zoom)]];
+      arrr = [[parseInt(arrr[0][0]*that.zoom),parseInt(arrr[0][1]*that.zoom)],[parseInt(arrr[1][0]*that.zoom),parseInt(arrr[1][1]*that.zoom)],[parseInt(arrr[2][0]*that.zoom),parseInt(arrr[2][1]*that.zoom)],[parseInt(arrr[3][0]*that.zoom),parseInt(arrr[3][1]*that.zoom)]];
+    }
+    //console.log(arrt,arrf,arrr);
+    if((x > arrf[0][0]) && (x < arrf[1][0])){ //front
+      y0 = parseInt(arrf[0][1] + (arrf[1][1] - arrf[0][1]) * (x - arrf[0][0]) / (arrf[1][0] - arrf[0][0]));
+      y1 = parseInt(arrf[2][1] - (arrf[2][1] - arrf[3][1]) * (arrf[2][0] - x) / (arrf[2][0] - arrf[3][0]));
+      if((y >= y0) && (y <= y1)) return 'f';
+    } else if((x > arrr[0][0]) && (x < arrr[1][0])){ //right
+      y0 = parseInt(arrr[0][1] - (arrr[0][1] - arrr[1][1]) * (x - arrr[0][0]) / (arrr[1][0] - arrr[0][0]));
+      y1 = parseInt(arrr[3][1] - (arrr[3][1] - arrr[2][1]) * (x - arrr[3][0]) / (arrr[2][0] - arrr[3][0]));
+      if((y >= y0) && (y <= y1)) return 'r';
+    }
+    //如果不在前右,再试一下是否在上面
+    if((x > arrt[3][0]) && (x < arrt[1][0]) && (y > arrt[0][1]) && (y < arrt[2][1])){ //top 在菱形所在外切长方形内
+      //只要点不在菱形与外切长方形形成4个外三角形内就说明在菱形内了
+      if((x > arrt[0][0]) && (x < arrt[1][0])){ //边1
+        y0 = arrt[0][1];
+        y1 = y0 + (x - arrt[0][0]) * (arrt[1][1] - arrt[0][1]) / (arrt[1][0] - arrt[0][0]);
+        if((y > y0) && (y < y1)) return '';
+       }
+       if((x >arrt[2][0]) && (x < arrt[1][0])){ //边2
+        y1 = arrt[2][1];
+        y0 = y1 - (x - arrt[2][0]) * (arrt[2][1] - arrt[1][1]) / (arrt[1][0] - arrt[2][0]);
+        if((y > y0) && (y < y1)) return '';
+       }
+       if((x >arrt[2][0]) && (x < arrt[1][0])){ //边3
+        y1 = arrt[2][1];
+        y0 = y1 - (arrt[2][0] - x) * (arrt[2][1] - arrt[3][1]) / (arrt[2][0] - arrt[3][0]);
+        if((y > y0) && (y < y1)) return '';
+       }
+       if((x >arrt[2][0]) && (x < arrt[1][0])){ //边4
+        y0 = arrt[0][0];
+        y1 = y0 + (arrt[0][0] - x) * (arrt[3][1] - arrt[0][1]) / (arrt[0][0] - arrt[3][0]);
+        if((y > y0) && (y < y1)) return '';
+       }
+       //其它则在菱形内了
+       return 't';
+    }
+    return '';
+  },
+
+  //3*3二维数组旋转90度
+  rotate90 : function (arr){
+      n = 3;
+      var arr1 = [];
+      for(i=0; i<n; i++){
+      for(j=0; j<n; j++){
+          arr1[j * n + n - 1 - i] = arr[i * n + j];
+      }}
+      return arr1;
+  },
+
+  //x轴(前面左中右)操作
+  fld3d : function (){
+    var elsn = [0,9,18,3,12,21,6,15,24];
+    that.roundx(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FLB();viewbyall();"); }}
+  },
+  flu3d : function (){
+    var elsn = [0,9,18,3,12,21,6,15,24];
+    that.roundx(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FLBo();viewbyall();"); }}
+  },
+  fmd3d : function (){
+    var elsn = [1,10,19,4,13,22,7,16,25];
+    that.roundx(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FMB();viewbyall();"); }}
+  },
+  fmu3d : function (){
+    var elsn = [1,10,19,4,13,22,7,16,25];
+    that.roundx(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FMBo();viewbyall();"); }}
+  },
+  frd3d : function (){
+    var elsn = [2,11,20,5,14,23,8,17,26];
+    that.roundx(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FRB();viewbyall();"); }}
+  },
+  fru3d : function (){
+    var elsn = [2,11,20,5,14,23,8,17,26];
+    that.roundx(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FRBo();viewbyall();"); }}
+  },
+
+  //y轴(上中下层)操作
+  ftr3d : function (){
+    var elsn = [0,9,18,1,10,19,2,11,20];
+    that.roundy(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FTR();viewbyall();"); }}
+  },
+  ftl3d : function (){
+    var elsn = [0,9,18,1,10,19,2,11,20];
+    that.roundy(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FTRo();viewbyall();"); }}
+  },
+  fmr3d : function (){
+    var elsn = [3,12,21,4,13,22,5,14,23];
+    that.roundy(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FMR();viewbyall();"); }}
+  },
+  fml3d : function (){
+    var elsn = [3,12,21,4,13,22,5,14,23];
+    that.roundy(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FMRo();viewbyall();"); }}
+  },
+  fbr3d : function (){
+    var elsn = [6,15,24,7,16,25,8,17,26];
+    that.roundy(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FBR();viewbyall();"); }}
+  },
+  fbl3d : function (){
+    var elsn = [6,15,24,7,16,25,8,17,26];
+    that.roundy(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("FBRo();viewbyall();"); }}
+  },
+
+  //z轴(右面左中右)操作
+  rld3d : function (){
+    var elsn = [2,1,0,5,4,3,8,7,6];
+    that.roundz(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("RLB();viewbyall();"); }}
+  },
+  rlu3d : function (){
+    var elsn = [2,1,0,5,4,3,8,7,6];
+    that.roundz(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("RLBo();viewbyall();"); }}
+  },
+  rmd3d : function (){
+    var elsn = [11,10,9,14,13,12,17,16,15];
+    that.roundz(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("RMB();viewbyall();"); }}
+  },
+  rmu3d : function (){
+    var elsn = [11,10,9,14,13,12,17,16,15];
+    that.roundz(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("RMBo();viewbyall();"); }}
+  },
+  rrd3d : function (){
+    var elsn = [20,19,18,23,22,21,26,25,24];
+    that.roundz(elsn, 0);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("RRB();viewbyall();"); }}
+  },
+  rru3d : function (){
+    var elsn = [20,19,18,23,22,21,26,25,24];
+    that.roundz(elsn, 1);
+    if(that.mousepid != ''){ if(window.hasOwnProperty("viewbyall")){ eval("RRBo();viewbyall();"); }}
+  },
+
+  rtr3d : function (){that.ftr3d();},
+  rtl3d : function (){that.ftl3d();},
+  rmr3d : function (){that.fmr3d();},
+  rml3d : function (){that.fml3d();},
+  rbr3d : function (){that.fbr3d();},
+  rbl3d : function (){that.fbl3d();},
+
+  ttr3d : function (){that.rrd3d();},
+  ttl3d : function (){that.rru3d();},
+  tmr3d : function (){that.rmd3d();},
+  tml3d : function (){that.rmu3d();},
+  tbr3d : function (){that.rld3d();},
+  tbl3d : function (){that.rlu3d();},
+
+  tld3d : function (){that.fld3d();},
+  tlu3d : function (){that.flu3d();},
+  tmd3d : function (){that.fmd3d();},
+  tmu3d : function (){that.fmu3d();},
+  trd3d : function (){that.frd3d();},
+  tru3d : function (){that.fru3d();},
+
+  chgId : function (elsn, zf){ //id更换, 保证旋转后的id还是从0~27
+    var elsn1 = that.rotate90(elsn);
+    if(zf == 1){ elsn1 = that.rotate90(elsn1); elsn1 = that.rotate90(elsn1);} //总转3次,相当于反转一次
+    for (var i=0; i<elsn.length; i++){
+      that.$('hkcube'+elsn1[i]).id = 'hkcube'+elsn[i]+'n';
+    }
+    for (var i=0; i<elsn.length; i++){
+      that.$('hkcube'+elsn[i]+'n').id = 'hkcube'+elsn[i];
+    }
+  },
+
+  chgx : function(elsn, zf){ //将动画旋转后的结果替换到初始位置, 一直保证所有小块都处于未旋转状态才能让整个魔方不乱, 因为一个小块经过x,y,z轴旋转后位置就乱了, 
+    var chgv = [[5,4,2,3,0,1]/*90*/,[4,5,2,3,1,0]/*-90*/]; //正反转各面映射关系
+    that.chgxyz(elsn, zf, chgv, 'x');
+  },
+  
+  chgy : function(elsn, zf){
+    var chgv = [[3,2,0,1,4,5]/*90*/,[2,3,1,0,4,5]/*-90*/]; //正反转各面映射关系 0前,1后,2左,3右,4上,5下
+    that.chgxyz(elsn, zf, chgv, 'y');
+  },
+  
+  chgz : function(elsn, zf){
+    var chgv = [[0,1,4,5,3,2]/*90*/,[0,1,5,4,2,3]/*-90*/]; //正反转各面映射关系 0前,1后,2左,3右,4上,5下
+    that.chgxyz(elsn, zf, chgv, 'z');
+  },
+  
+  chgxyz : function(elsn, zf, chgv, chgtype){
+    var der=new Array("←","↑","→","↓");
+    var elsn1 = that.rotate90(elsn);
+    //console.log(elsn,elsn1, zf);
+    var chgi = chgv[0];
+    if(zf != 1) { elsn1 = that.rotate90(that.rotate90(elsn1)); chgi = chgv[1]; zf = -1;} //反转1次=正转3次
+    if( //看不见的三面旋转方面是反的
+          ((elsn[0] == 0) && (elsn[1] == 9) && (elsn[3] == 3)) //三块定面 left
+       || ((elsn[0] == 20) && (elsn[1] == 19) && (elsn[3] == 23)) //back
+       || ((elsn[0] == 6) && (elsn[1] == 15) && (elsn[3] == 7)) //bottom
+    ) {
+      zf *= -1;
+    }
+    if(chgtype == 'z') { zf *= -1; }  //z轴旋转是反的
+    divs = new Array(9);
+    for(i=0; i<elsn1.length; i++){
+      divs[i] = document.createElement('div');
+      divs[i].innerHTML = that.$('hkcube'+elsn1[i]).innerHTML;
+    }
+    for(i=0; i<elsn.length; i++){
+      oldSpans = that.$('hkcube'+elsn[i]).children; //0前,1后,2左,3右,4上,5下
+      newSpans = divs[i].children;
+      for(j=0; j<6; j++){ //6个面分别替换
+        oldSpans[j].innerHTML = newSpans[chgi[j]].innerHTML; //这两个位置不变但要改文字方向
+        t = newSpans[chgi[j]].getAttribute('t'); //获取文字
+        if(t == '') continue;
+        c = newSpans[chgi[j]].style.color;
+        oldSpans[j].setAttribute('t', t);
+        oldSpans[j].setAttribute('d', newSpans[chgi[j]].getAttribute('d'));
+        oldSpans[j].style.cssText = newSpans[chgi[j]].style.cssText;
+        zf1 = zf;
+        if((j == chgi[j]) || (chgtype == 'z')){ //此处使用文字旋转, z轴旋转所有面的文字方向都会变
+          if((elsn[0] == 20) && (elsn[1] == 19) && (elsn[3] == 23) && (j != chgi[j])) zf1 = -1 * zf; //修正
+          d = (parseInt(newSpans[chgi[j]].getAttribute('d')) + 4 + zf1) % 4;
+          oldSpans[j].setAttribute('d', d);
+          t = t.charAt(0) + der[d];
+          oldSpans[j].setAttribute('t', t);
+          oldSpans[j].innerHTML = t;
+        } else if(chgtype == 'x'){ //x轴旋转时,后面<=>底面,顶面<=>后面,都需要变方向
+          var oscls = newSpans[j].className;
+          if((elsn[0] == 0) && (elsn[1] == 9) && (elsn[3] == 3)) zf1 = -1 * zf; //如果是左面,需要再修正一次
+          if(((zf1 == 1) && ((oscls == 'hkin_back') || (oscls == 'hkin_bottom'))) || //f(l|m|r)u3d
+          ((zf1 == -1) && ((oscls == 'hkin_back') || (oscls == 'hkin_top'))) //f(l|m|r)d3d
+          ){
+            d = (parseInt(newSpans[chgi[j]].getAttribute('d')) + 2) % 4;
+            oldSpans[j].setAttribute('d', d);
+            t = t.charAt(0) + der[d];
+            oldSpans[j].setAttribute('t', t);
+            oldSpans[j].innerHTML = t;
+          }
+        }
+      }
+    }
+  },
+
+  roundx : function (elsn, zf){
+      var ss = document.styleSheets;
+      for (var i=0; i<elsn.length; i++){
+        const newDiv = that.$('hkcube'+elsn[i]);
+        tx = parseInt(newDiv.getAttribute('tx'));
+        ty = parseInt(newDiv.getAttribute('ty'));
+        tz = parseInt(newDiv.getAttribute('tz'));
+        rx = parseInt(newDiv.getAttribute('rx'));
+        ry = parseInt(newDiv.getAttribute('ry'));
+        rz = parseInt(newDiv.getAttribute('rz'));
+        oldcss = newDiv.style.cssText;
+        newDiv.style.transformOrigin = "150px 150px -100px";
+        rx1 = rx + (zf==1?90:-90); //这个是反的
+        //newDiv.setAttribute('rx', rx1); //不记录状态,让整个魔方永远处于初始状态,这样不管后面怎么旋转都是初始状态,保存魔方不乱
+        css = `@keyframes rx${elsn[i]}${zf}{from{transform:rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg) translateX(${tx}px) translateY(${ty}px) translateZ(${tz}px)}to{transform:rotateX(${rx1}deg) rotateY(${ry}deg) rotateZ(${rz}deg) translateX(${tx}px) translateY(${ty}px) translateZ(${tz}px)}}`;
+        ss[0].insertRule(css); //添加动画样式
+        newDiv.style.animation = parseFloat(that.waitTime/1000) + 's linear 0s 1 normal forwards running rx'+elsn[i]+zf;
+        setTimeout(function(id,oldcss){ //动画执行完后,还原为初始状态
+          that.$('hkcube'+id).style.cssText = oldcss;
+        }, that.waitTime, elsn[i], oldcss); //与动画时间一致
+      }
+      setTimeout((elsn,zf)=>{that.chgx(elsn,zf);}, that.waitTime, elsn, zf); //动画完成后手动把结果替换到初始位置去
+  },
+
+  roundy : function (elsn, zf){
+      var ss = document.styleSheets;
+      for (var i=0; i<elsn.length; i++){
+        const newDiv = that.$('hkcube'+elsn[i]);
+        tx = parseInt(newDiv.getAttribute('tx'));
+        ty = parseInt(newDiv.getAttribute('ty'));
+        tz = parseInt(newDiv.getAttribute('tz'));
+        rx = parseInt(newDiv.getAttribute('rx'));
+        ry = parseInt(newDiv.getAttribute('ry'));
+        rz = parseInt(newDiv.getAttribute('rz'));
+        newDiv.style.transformOrigin = '150px 150px -100px';
+        oldcss = newDiv.style.cssText;
+        ry1 = ry + (zf==1?-90:90);
+        //newDiv.setAttribute('ry', ry1); 
+        css = `@keyframes ry${elsn[i]}${zf}{from{transform:rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg) translateX(${tx}px) translateY(${ty}px) translateZ(${tz}px)}to{transform:rotateX(${rx}deg) rotateY(${ry1}deg) rotateZ(${rz}deg) translateX(${tx}px) translateY(${ty}px) translateZ(${tz}px)}}`;
+        ss[0].insertRule(css); //生成旋转动画
+        newDiv.style.animation = parseFloat(that.waitTime/1000) + 's linear 0s 1 normal forwards running ry'+elsn[i]+zf; //执行旋转动画
+        //console.log(document.styleSheets[0]);
+        setTimeout(function(id,oldcss){ //动画执行完后,转为css样式,保留住最终状态
+          that.$('hkcube'+id).style.cssText = oldcss;
+        }, that.waitTime, elsn[i], oldcss);
+      }
+      setTimeout((elsn,zf)=>{that.chgy(elsn,zf);}, that.waitTime, elsn, zf); //这个时间要比上面动画时间要长一点
+  },
+
+  roundz : function (elsn, zf){ //elsn:对象, zf正反转: 0,1
+      var ss = document.styleSheets;
+      for (var i=0; i<elsn.length; i++){
+        const newDiv = that.$('hkcube'+elsn[i]);
+        tx = parseInt(newDiv.getAttribute('tx'));
+        ty = parseInt(newDiv.getAttribute('ty'));
+        tz = parseInt(newDiv.getAttribute('tz'));
+        rx = parseInt(newDiv.getAttribute('rx'));
+        ry = parseInt(newDiv.getAttribute('ry'));
+        rz = parseInt(newDiv.getAttribute('rz'));
+        rz1 = rz+(zf==1?-90:90);
+        newDiv.style.transformOrigin = '150px 150px 0';
+        oldcss = newDiv.style.cssText;
+        //newDiv.setAttribute('rz', rz1); 
+        css = `@keyframes rz${elsn[i]}${zf}{from{transform:rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg) translateX(${tx}px) translateY(${ty}px) translateZ(${tz}px)}to{transform:rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz1}deg) translateX(${tx}px) translateY(${ty}px) translateZ(${tz}px)}}`;
+        ss[0].insertRule(css);
+        newDiv.style.animation = parseFloat(that.waitTime/1000) + 's linear 0s 1 normal forwards running rz'+elsn[i]+zf;
+        setTimeout(function(id,oldcss){ //动画执行完后,转为css样式,保留住最终状态
+          that.$('hkcube'+id).style.cssText = oldcss;
+        }, that.waitTime, elsn[i], oldcss);
+      }
+      setTimeout((elsn,zf)=>{that.chgz(elsn,zf);}, that.waitTime, elsn, zf);
+  },
+
+  getkeyframes : function (name) {
+    var animation = {};
+    // 获取所有的style
+    var ss = document.styleSheets;
+    const item = ss[0];
+    for (var i = 0; i < item.cssRules.length; ++i) {
+      if (item.cssRules[i] && item.cssRules[i].name && item.cssRules[i].name === name) {
+        animation.cssRule = item.cssRules[i];
+        animation.styleSheet = item;
+        animation.index = i;
+      }
+    }
+    return animation;
+  }
+}
+//hkcube.initGame('game');
+
+const funs = {
+  "F":'rld3d',
+  "F'":'rlu3d',
+  "R":'fru3d',
+  "R'":'frd3d',
+  "U":'ftl3d',
+  "U'":'ftr3d',
+  "B":'rru3d',
+  "B'":'rrd3d',
+  "L":'fld3d',
+  "L'":'flu3d',
+  "D":'fbr3d',
+  "D'":'fbl3d'
+};
+var waitTime = 300; // //ms 这里要比魔方旋转的时间长一点点，不然魔方还没转完又执行一下次操作，会导致磨方乱掉
+var acts = []; //需要执行的命令
+var sto = null;
+
+window.onload = function(){
+  hkcube.initGame('cubes');
+  waitTime = hkcube.waitTime + 20;
+  
+  const as = document.getElementsByTagName('a');
+  for(i=0; i<as.length; i++){
+    as[i].onclick = function(){ turn3D(this.innerText);}
+  }
+}
+
+function sleep(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function turn3D(fun){
+  if(fun == "执行"){ await doActs(); return; }
+  if(!funs.hasOwnProperty(fun)) return;
+  eval("hkcube."+funs[fun]+"()");
+  await sleep(waitTime);
+}
+
+async function doActs(){
+  const validchar = "FF2RR2UU2BB2LL2DD2F'R'U'B'L'D'";
+  var con = document.getElementById('inp').value;
+  var arr = con.split(' ');
+  for(i=0; i<arr.length; i++){//验证合法性
+    if(validchar.indexOf(arr[i]) < 0){
+      alert('公式有误,请核对后再试~');
+      return;
+    }
+  }
+  for(i=0; i<arr.length; i++){
+    if((arr[i].length == 2) && (arr[i].charAt(1) == '2')){
+      acts.push(arr[i].charAt(0));
+      acts.push(arr[i].charAt(0));
+    }else{
+      acts.push(arr[i]);
+    }
+  }
+  doAct();
+  sto = setInterval(function(){ doAct(); }, waitTime);
+}
+
+function doAct(){
+  if(acts.length == 0){
+    clearInterval(sto);
+    sto = null;
+    return;
+  }
+  var fun = acts.splice(0,1)[0];
+  turn3D(fun);
+}
+</script>
+</body>
+</html>
