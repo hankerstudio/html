@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code World - Platform Jumper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background: #0a0e17;
+        }
+
+        #game-container {
+            width:1182px;
+            height:670px;
+            position: relative;
+            border: 3px solid #00ff88;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        #game-canvas {
+            display: block;
+            background: linear-gradient(#1e3c72, #2a5298);
+            position:absolute;
+            z-index:-1;
+        }
+        #game-body{
+            width:100%;
+            height:100%;
+        }
+        
+        /* 容器样式 */
+        .container-wrapper {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+        .items{
+            display:flex;
+            
+        }
+        .source-container {
+            width:200px;
+            height: 200px;
+            border: 2px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+            position: relative;
+            overflow: hidden; /* 防止元素溢出容器显示滚动条 */
+        }
+        
+        .target-container.delete-hint {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+
+        .target-container.highlight {
+            border-color: #4CAF50;
+            background-color: #f0f8f0;
+        }
+
+        .draggable-item {
+            width: 100px;
+            height: 100px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            margin: 10px;
+            cursor: copy;
+            user-select: none;
+            position: relative;
+            z-index: 1;
+            overflow:hidden;
+            font-size:12px;
+        }
+
+        .target-container .draggable-item {
+            cursor: move;
+            margin: 0;
+            position: absolute;
+            z-index: 2;
+        }
+
+        .resize-handle {
+            width: 15px;
+            height: 15px;
+            background-color: #2196F3;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            cursor: se-resize;
+            display: none;
+            z-index: 3;
+        }
+
+        .target-container .resize-handle {
+            display: block;
+        }
+
+        .draggable-item.dragging {
+            opacity: 0.8;
+            z-index: 10;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+            color: #333;
+            position: relative;
+            z-index: 1;
+        }
+        .right-rlt{
+            position:fixed;
+            top:0;
+            right:0;
+            width:700px;
+            min-height:665px;
+            border:3px solid #0f8;
+            border-radius:10px;
+            color:#fff;
+            padding:10px;
+        }
+        .left-btns {
+            position:absolute;
+            width:300px;
+            left:20px;
+            top: 20px;
+        }
+        
+        .left-a-btn{
+            width:130px;
+            height:60px;
+        }
+        
+        .btns{
+            cursor: default;
+            position:relative;
+            width:100%;
+            height:100%;
+            font-size:40px;
+            color: #34cfbe;
+            margin:10px;
+            font-weight:600;
+            display:flex;
+            align-items: center;
+            justify-content: space-between; 
+            box-sizing:border-box;
+        }
+        .btns .bg{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border:4px solid #023e34;
+            background:#002727;
+            border-radius: 20px;
+            opacity: 0.85;
+        }
+        .btns:hover .bg{
+            background:#647575;
+            border:4px solid #425954;
+        }
+        .btns p {
+            position: relative;
+            z-index: 1;
+            margin: 0 20px;
+        }
+        #pre input { width:200px; }
+        .red{border:2px solid #AE101A;background:#6E0A17;width:10px;height:10px;display:inline-block;}
+        .blue{border:2px solid #006ABD;background:#004977;width:10px;height:10px;display:inline-block;}
+        .pink{border:2px solid #A800BE;background:#620078;width:10px;height:10px;display:inline-block;}
+        .dark{border:2px solid #670941;background:#2D040E;width:10px;height:10px;display:inline-block;}
+        .green{border:2px solid #008234;background:#004132;width:10px;height:10px;display:inline-block;}
+        .yell{border:2px solid #AD8900;background:#6D5000;width:10px;height:10px;display:inline-block;}
+        .lhs{border:2px solid #485699;background:#1C1732;width:10px;height:10px;display:inline-block;}
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- 游戏画布 -->
+        <canvas id="game-canvas" width="1176" height="664"></canvas>
+        <div class="target-container" id="game-body"></div>
+        <div style='display:none'><div id='victoryModal'></div><div id='restartBtn'></div><div id='closeBtn'></div></div>
+    </div>
+    <div class="right-rlt">
+        <b>当前配件属性</b>
+        <div id="pre" style="min-height:200px">
+            名称: <input type="text" id='ttl' value='' disabled><br>
+            位置: <input type="text" id='loc' value=''><br>
+            背景: <input type="text" id='bgc' value=''> <a class='a pink'></a> <a class='a blue'></a> <a class='a red'></a> <a class='a dark'></a> <a class='a green'></a> <a class='a yell'></a> <a class='a lhs'></a><br>
+            边框: <input type="text" id='brc' value=''><br>
+            方法: <input type="text" id='fns' value='' style="width:560px"><br>
+            提示: <textarea id='code' style="width:560px;height:300px"></textarea><br>
+        </div>
+        <div style='display:flex;height:75px;'>
+          <div class="left-a-btn"><div class="btns" id="hqb"><div class="bg"></div><p>获取</p></div></div>
+          <div class="left-a-btn"><div class="btns" id="scb"><div class="bg"></div><p>生成</p></div></div>
+          <div class="left-a-btn"><div class="btns" id="mrb"><div class="bg"></div><p>默认</p></div></div>
+        </div>
+        <textarea id="rlt" style="width:90%;min-height:300px"></textarea>
+        
+    </div>
+    <div class="items" id="items">
+        <div class="source-container">
+            <h3>地板</h3>
+            <div class="draggable-item" draggable="true" title="地板" rel="1" style="background:#34260D;border:2px solid #803C20;">
+                地板<br>可拖动<br>可复制<br>可调大小
+                <div class="resize-handle"></div>
+            </div>
+        </div>
+        <div class="source-container">
+            <h3>门</h3>
+            <div class="draggable-item" draggable="true" title="门" rel="1" style="width:95px;height:147px;background:#620078;border:2px solid #A800BE;">
+                门<br>可拖动<br>可复制<br>可调大小
+                <div class="resize-handle"></div>
+            </div>
+        </div>
+        <div class="source-container">
+            <h3>机器人</h3>
+            <div class="draggable-item" draggable="true" title="机器人" rel="1" style="width:80px;height:80px;">
+                机器人<br>可拖动<br>可复制<br>不可调大小
+            </div>
+        </div>
+        <div class="source-container">
+            <h3>星星</h3>
+            <div class="draggable-item" draggable="true" title="星星" rel="1" style="width:75px;height:75px;background:#9900ff">
+                星星<br>可拖动<br>可复制<br>不可调大小
+            </div>
+        </div>
+        <div class="source-container">
+            <h3>其他配件</h3>
+            <div class="draggable-item" draggable="true" rel="0">
+                配件<br>可拖动<br>可复制<br>可调大小
+                <div class="resize-handle"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src='script.js'></script>
+    <script>
+        // 启动游戏
+        var game = null;
+        window.addEventListener('DOMContentLoaded', () => {
+            game = new CodeWorldGame(0,'#1e3c72','#2a5298',-1,-1,-1,-1,[]);
+        });
+        
+        // 全局状态管理（仅存储当前操作的元素）
+        let currentDrag = {
+            element: null,
+            startX: 0,
+            startY: 0,
+            offsetX: 0,
+            offsetY: 0
+        };
+        let currentResize = {
+            element: null,
+            startX: 0,
+            startY: 0,
+            startWidth: 0,
+            startHeight: 0
+        };
+
+        const sourceContainer = document.getElementById('items');
+        const targetContainer = document.getElementById('game-body');
+
+        // ========== 1. 修复拖放复制功能（核心） ==========
+        // 为原容器元素绑定拖动开始事件（兼容所有浏览器）
+        sourceContainer.querySelectorAll('.draggable-item').forEach(item => {
+            // 手动触发拖动（解决部分浏览器dragstart失效问题）
+            item.setAttribute('draggable', 'true');
+            
+            item.addEventListener('dragstart', (e) => {
+                // 必须设置数据（否则拖放失效）
+                e.dataTransfer.setData('text/plain', item.outerHTML);
+                e.dataTransfer.effectAllowed = 'copy';
+                // 解决Chrome拖放预览问题
+                e.dataTransfer.setDragImage(new Image(), 0, 0);
+            });
+
+            item.addEventListener('dragend', () => {
+                targetContainer.classList.remove('highlight');
+            });
+        });
+
+        // 目标容器拖放事件（修复顺序和兼容性）
+        targetContainer.addEventListener('dragover', (e) => {
+            e.preventDefault(); // 必须阻止默认行为才能触发drop
+            e.stopPropagation();
+            targetContainer.classList.add('highlight');
+        }, false);
+
+        targetContainer.addEventListener('dragleave', (e) => {
+            // 修复：仅当鼠标完全离开容器时才移除高亮
+            const rect = targetContainer.getBoundingClientRect();
+            if (!(e.clientX >= rect.left && e.clientX <= rect.right &&
+                  e.clientY >= rect.top && e.clientY <= rect.bottom)) {
+                targetContainer.classList.remove('highlight');
+            }
+        }, false);
+
+        targetContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            targetContainer.classList.remove('highlight');
+
+            // 获取拖放的元素HTML
+            const itemHtml = e.dataTransfer.getData('text/plain');
+            if (!itemHtml) return; // 无数据则退出
+
+            // 创建新元素
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = itemHtml;
+            const newItem = tempDiv.firstElementChild;
+            
+            // 生成唯一ID
+            newItem.id = `item-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
+            
+            // ========== 精准定位到鼠标落点 ==========
+            const containerRect = targetContainer.getBoundingClientRect();
+            const itemWidth = newItem.offsetWidth;
+            const itemHeight = newItem.offsetHeight;
+            
+            // 计算元素左上角位置（中心对齐鼠标）
+            const left = e.clientX - containerRect.left - (itemWidth / 2);
+            const top = e.clientY - containerRect.top - (itemHeight / 2);
+            
+            // 设置位置
+            newItem.style.left = `${Math.max(0, left)}px`;
+            newItem.style.top = `${Math.max(0, top)}px`;
+
+            // 添加到目标容器并绑定事件
+            targetContainer.appendChild(newItem);
+            bindTargetItemEvents(newItem);
+        }, false);
+
+        // ========== 2. 绑定目标容器元素的交互事件 ==========
+        function bindTargetItemEvents(element) {
+            // 拖动事件
+            element.addEventListener('mousedown', startDrag);
+            // 调整大小事件
+            const resizeHandle = element.querySelector('.resize-handle');
+            if(resizeHandle) resizeHandle.addEventListener('mousedown', startResize);
+        }
+
+        // ========== 3. 拖动功能（独立移动） ==========
+        function startDrag(e) {
+            // 点击调整手柄不触发拖动
+            if (e.target.classList.contains('resize-handle')) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+
+            // 记录当前拖动的元素和初始位置
+            currentDrag.element = this;
+            currentDrag.element.classList.add('dragging');
+            
+            showInfo();
+            
+            const rect = currentDrag.element.getBoundingClientRect();
+            const containerRect = targetContainer.getBoundingClientRect();
+            
+            // 计算鼠标相对于元素的偏移
+            currentDrag.offsetX = e.clientX - rect.left;
+            currentDrag.offsetY = e.clientY - rect.top;
+
+            // 绑定移动和停止事件
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('mouseup', stopDrag, { once: true });
+        }
+
+        function handleDragMove(e) {
+            if (!currentDrag.element) return;
+            
+            e.preventDefault();
+            const containerRect = targetContainer.getBoundingClientRect();
+
+            // 计算新位置
+            let newLeft = e.clientX - containerRect.left - currentDrag.offsetX;
+            let newTop = e.clientY - containerRect.top - currentDrag.offsetY;
+
+            // 判断是否拖出容器
+            const elemRect = currentDrag.element.getBoundingClientRect();
+            const isOutOfContainer = 
+                (newLeft + elemRect.width/2) < 0 ||
+                (newTop + elemRect.height/2) < 0 ||
+                (newLeft + elemRect.width/2) > containerRect.width ||
+                (newTop + elemRect.height/2) > containerRect.height;
+
+            // 视觉提示
+            if (isOutOfContainer) {
+                targetContainer.classList.add('delete-hint');
+            } else {
+                targetContainer.classList.remove('delete-hint');
+                // 限制在容器内
+                newLeft = Math.max(0, Math.min(newLeft, containerRect.width - elemRect.width));
+                newTop = Math.max(0, Math.min(newTop, containerRect.height - elemRect.height));
+            }
+
+            // 更新位置
+            currentDrag.element.style.left = `${newLeft}px`;
+            currentDrag.element.style.top = `${newTop}px`;
+        }
+
+        function stopDrag() {
+            if (!currentDrag.element) return;
+            showInfo();
+            // 移除拖动样式
+            currentDrag.element.classList.remove('dragging');
+            
+            // 判断是否删除元素
+            const containerRect = targetContainer.getBoundingClientRect();
+            const elemRect = currentDrag.element.getBoundingClientRect();
+            
+            // 计算重叠面积
+            const overlapX = Math.max(0, Math.min(elemRect.right, containerRect.right) - Math.max(elemRect.left, containerRect.left));
+            const overlapY = Math.max(0, Math.min(elemRect.bottom, containerRect.bottom) - Math.max(elemRect.top, containerRect.top));
+            const overlapArea = overlapX * overlapY;
+            const elemArea = elemRect.width * elemRect.height;
+
+            // 重叠小于70%则删除
+            if (overlapArea / elemArea < 0.7) {
+                currentDrag.element.remove();
+            }
+
+            // 重置状态
+            targetContainer.classList.remove('delete-hint');
+            document.removeEventListener('mousemove', handleDragMove);
+            //currentDrag = { element: null, startX: 0, startY: 0, offsetX: 0, offsetY: 0 };
+        }
+
+        // ========== 4. 调整大小功能 ==========
+        function startResize(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            currentResize.element = this.closest('.draggable-item');
+            const rect = currentResize.element.getBoundingClientRect();
+            
+            // 记录初始状态
+            currentResize.startX = e.clientX;
+            currentResize.startY = e.clientY;
+            currentResize.startWidth = rect.width;
+            currentResize.startHeight = rect.height;
+
+            // 绑定调整事件
+            document.addEventListener('mousemove', handleResize);
+            document.addEventListener('mouseup', stopResize, { once: true });
+        }
+
+        function handleResize(e) {
+            if (!currentResize.element) return;
+            
+            e.preventDefault();
+            // 计算尺寸变化
+            const deltaX = e.clientX - currentResize.startX;
+            const deltaY = e.clientY - currentResize.startY;
+
+            // 最小尺寸限制
+            const newWidth = Math.max(80, currentResize.startWidth + deltaX);
+            const newHeight = Math.max(80, currentResize.startHeight + deltaY);
+
+            // 更新尺寸
+            currentResize.element.style.width = `${newWidth}px`;
+            currentResize.element.style.height = `${newHeight}px`;
+        }
+
+        function stopResize() {
+            document.removeEventListener('mousemove', handleResize);
+            //currentResize = { element: null, startX: 0, startY: 0, startWidth: 0, startHeight: 0 };
+        }
+        
+        function showInfo(){
+            var item = currentDrag.element;
+            $('ttl').value = item.title;
+            $('loc').value = parseInt(item.style.left) +','+ parseInt(item.style.top) +','+ item.clientWidth +','+ item.clientHeight;
+            const css = getComputedStyle(item);
+            $('bgc').value = css.getPropertyValue('background-color').trim();
+            $('brc').value = css.getPropertyValue('border-color').trim();
+            $('fns').value = item.getAttribute('fns');
+            var c = item.getAttribute('code');
+            c = c == null ? '' : c;
+            $('code').value = c.replace(/&lt;br>/g, '\r\n');
+        }
+        
+        $('hqb').onclick = function() {
+            var str = '';
+            $('game-body').querySelectorAll('.draggable-item').forEach((item, i) => {
+                const css = getComputedStyle(item);
+                const bgc = css.getPropertyValue('background-color').trim();
+                const brc = css.getPropertyValue('border-color').trim();
+                const fns = item.getAttribute('fns');
+                var code = item.getAttribute('code');
+                if(code == null) code = '';
+                code = code.replace(/  /g, '&nbsp; ').replace(/  /g, '&nbsp; ').replace(/'/g, '"');
+                str += "{title:'"+item.title+"',name:'pt"+i+"', x:"+parseInt(item.style.left)+", y:"+parseInt(item.style.top)+",des:false,width:"+item.clientWidth+",height:"+item.clientHeight+",color:'"+bgc+"',border:'"+brc+"',fns:"+fns+",code:'"+code+"'},\r\n";
+            });
+            $('rlt').value = str.replace(/&lt;/g, '<');
+        };
+        $('scb').onclick = function() {
+            var str = '';
+            var arr = $('rlt').value.replace(/\r/g,'').split("\n");
+            for(var i=0; i<arr.length; i++){
+                var v = arr[i];
+                if(v == '') continue;
+                v = v.substr(0, arr[i].length-1).trim();
+                var obj = strToObj(v);
+                str += '<div class="draggable-item" draggable="true" title="'+obj.title+'" rel="1" style="background:'+obj.color+'; border: 2px solid '+obj.border+'; left: '+obj.x+'px; top: '+obj.y+'px;width:'+obj.width+'px;height:'+obj.height+'px;" id="item-'+i+'" onmousedown="startDrag" fns="[['+obj.fns+']]" code=\''+obj.code.replace(/<br>/g,'\r\n')+'\'>'+obj.title+'<div class="resize-handle" onmousedown="startResize"></div></div>';
+            }
+            $('game-body').innerHTML = str;
+            $('game-body').querySelectorAll('.draggable-item').forEach( element => {
+                bindTargetItemEvents(element);
+            });
+        }
+        $('mrb').onclick = function(){
+            var items = $('game-body').querySelectorAll('.draggable-item');
+            if(items.length < 4) return;
+            items[0].style.left = '0px';
+            items[0].style.top = '370px';
+            items[0].style.width = '230px';
+            items[0].style.height = '290px';
+            items[1].style.left = '230px';
+            items[1].style.top = '515px';
+            items[1].style.width = '475px';
+            items[1].style.height = '145px';
+            items[2].style.left = '655px';
+            items[2].style.top = '515px';
+            items[2].style.width = '305px';
+            items[2].style.height = '145px';
+            items[3].style.left = '942px';
+            items[3].style.top = '370px';
+            items[3].style.width = '230px';
+            items[3].style.height = '290px';
+        }
+        
+        function strToObj(str) {
+            // 1. 去除首尾空白（可选）
+            str = str.trim();
+            // 2. 替换单引号为双引号
+            str = str.replace(/\\/g, '\\\\');
+            str = str.replace(/"/g, '\\"');
+            str = str.replace(/'/g, '"');
+            //str = str.replace(/:\[/g, ':"[');
+            //str = str.replace(/],/g, ']",');
+            //str = str.replace(/"\((.*?)\)\"/g, '\\"($1)\\"');
+            // 3. 给无引号的属性名补双引号（处理 {title:"地板"} → {"title":"地板"}）
+            str = str.replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3');
+            // 4. 解析为对象
+            try {
+                return JSON.parse(str);
+            } catch (e) {
+                console.error('解析失败：', e);
+                return {}; // 解析失败返回空对象
+            }
+        }
+        
+        
+        $('loc').onchange = function(){
+            var arr = $('loc').value.split(',');
+            currentDrag.element.style.left = arr[0] + 'px';
+            currentDrag.element.style.top = arr[1] + 'px';
+            currentDrag.element.style.width = arr[2] + 'px';
+            currentDrag.element.style.height = arr[3] + 'px';
+        };
+        $('bgc').onchange = function(){
+            currentDrag.element.style.background = $('bgc').value;
+        };
+        $('brc').onchange = function(){
+            currentDrag.element.style.borderColor = $('brc').value;
+        };
+        $('fns').onchange = function(){
+            currentDrag.element.setAttribute('fns', $('fns').value);
+        };
+        $('code').onchange = function(){
+            var str = $('code').value;
+            str = str.replace(/'/g, '\'');
+            str = str.replace(/"/g, '\"');
+            str = str.replace(/\r/g, '').replace(/\n/g, '&lt;br>');
+            currentDrag.element.setAttribute('code', str);
+        };
+        $('pre').querySelectorAll('.a').forEach(a=>{
+            a.onclick = function(){
+              const css = getComputedStyle(this);
+              const bgc = css.getPropertyValue('background-color').trim();
+              const brc = css.getPropertyValue('border-color').trim();
+              $('bgc').value = bgc;
+              $('brc').value = brc;
+              currentDrag.element.style.background = bgc;
+              currentDrag.element.style.borderColor = brc;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code World - Platform Jumper</title>
+    <link  type="text/css" rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="game-container">
+        <!-- 游戏画布 -->
+        <canvas id="game-canvas" width="1176" height="664"></canvas>
+        
+        <!-- 游戏提示 -->
+        <div class="game-hud">方向键移动,空格跳跃 <button onclick="$('help').style.display='flex';">帮助</button></div>
+        
+        <!-- 游戏菜单 -->
+        <div class="game-menu">
+            <div>发送信息: Enter</div>
+            <div>重来本关: Shift</div>
+            <div>返回主页: Esc</div>
+        </div>
+        
+        <!-- 胜利弹窗 -->
+        <div class="victory-modal" id="victoryModal">
+            <div class="victory-content">
+                <h2>🎉 本关通过! 🎉</h2>
+                <p>成功收集到星星!</p>
+                <button id="restartBtn">继续</button>
+            </div>
+        </div>
+        
+        <!-- code -->
+        <div class="victory-modal" id="code">
+            <div class="victory-content">
+                <p id="codev" style="padding:10px;text-align:left;font-size:12px;min-height:430px;line-height:20px;">
+
+                </p>
+                <button id="closeBtn">关闭</button>
+            </div>
+        </div>
+        
+        <!-- 输入弹窗 -->
+        <div class="game-menu" id="msg" style="bottom:300px;right:500px;display:none;">
+            <input type="text" id="val"><input type='hidden' id='dir' value='1'><br><br>
+            <input type="button" id='dir0' value="上" onclick="$('dir'+$('dir').value).style.background='';this.style.background='red';$('dir').value='0';">
+            <input type="button" id='dir2' value="下" onclick="$('dir'+$('dir').value).style.background='';this.style.background='red';$('dir').value='2';">
+            <input type="button" id='dir3' value="左" onclick="$('dir'+$('dir').value).style.background='';this.style.background='red';$('dir').value='3';">
+            <input type="button" id='dir1' value="右" onclick="$('dir'+$('dir').value).style.background='';this.style.background='red';$('dir').value='1';">
+            &nbsp; <input type="button" id="send" value="Enter" onclick="var event=document.createEvent('Event');event.initEvent('keydown',true,false);event = Object.assign(event, {which:13,keyCode:13,key:'Enter',code:'Enter',ctrlKey:false,metaKey:false,altKey:false});$('val').focus();$('val').dispatchEvent(event);">
+        </div>
+        
+        <!-- 帮助中心 -->
+        <div class="victory-modal" id="help">
+            <div class="victory-content">
+                <h2>🎉 命令说明 🎉</h2>
+                <p style="text-align:left;font-size:12px;">
+                布尔类型转换 bool(val)　　　将参数转换为布尔类型。例：bool (1) == True。<br><br>
+                对象销毁 destroy(obj_name)　　销毁所有名称与 obj_name 匹配的设备 / 对象。<br><br>
+                代码编辑 edit(...)　　　在编辑器中打开该对象的代码。编辑后的代码仅允许包含作为 edit 函数参数指定名称的函数。<br><br>
+                存在性判断 exists(obj_name)　　若名称为 obj_name 的对象存在，返回 True；否则返回 False。<br><br>
+                取值 get_value(obj_name)　　获取名称为 obj_name 的对象的值并返回。<br><br>
+                整数类型转换 int(val)　　　将参数转换为整数类型。例：int ('123') == 123。<br><br>
+                长度获取 len(str_or_tuple)　　获取对象的长度。参数可为字符串或元组。<br><br>
+                最大值获取 max(x, y)　　返回两个参数中的较大值。<br><br>
+                最小值获取 min(x, y)　　返回两个参数中的较小值。<br><br>
+                移动 move(dir, dist)　　让调用此函数的对象沿指定方向 dir（可选值：'up' 向上、'right' 向右、'down' 向下、'left' 向左）移动指定距离 dist。<br><br>
+                随机整数生成 random(n, m)　　返回 n 到 m（包含 n 和 m）之间的随机整数。<br><br>
+                范围生成 range(n)　　返回一个元组，包含从 0 到 n-1 的 n 个整数（包含边界）。<br><br>
+                定向发送消息 send(dir, msg)　　沿指定方向 dir（可选值：'up'/'right'/'down'/'left'）发送消息 msg。<br><br>
+                定向对象发消息 send_to(obj_name, msg)　　立即向所有名称为 obj_name 的对象发送消息 msg。<br><br>
+                代码查看 show()　　在查看器中打开调用此函数的对象的代码。<br><br>
+                延时 sleep(ms)　　将代码执行暂停 ms 毫秒。<br><br>
+                字符串类型转换 str(val)　　将参数转换为字符串类型。例：str (123) == '123'。<br><br>
+                元组创建 tuple(...)　　返回一个包含所有参数的元组，保留参数原有顺序。例：tuple (1) + tuple (2) == tuple (1, 2)。<br><br>
+                类型判断 type(v)　　若 v 是整数返回 'int'，是字符串返回'str'，是布尔值（True/False）返回 'bool'，是元组返回 'tuple'。<br><br>
+                </p>
+                <button onclick="this.parentNode.parentNode.style.display='none';">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src='script.js'></script>
+    <script>
+        // 平台配置（还原截图中的平台布局）
+        //fns:[['可用方法名','方块名称','方块value值','其它自定义变量',...],['可用方法名','其它自定义变量',...],...]
+        var pts = [
+            {title:'地板',name:'pt0', x:0, y:362,des:false,width:218,height:297,color:'rgb(52, 38, 13)',border:'rgb(128, 60, 32)',fns:null,code:''},
+            {title:'地板',name:'pt1', x:221, y:512,des:false,width:416,height:147,color:'rgb(52, 38, 13)',border:'rgb(128, 60, 32)',fns:null,code:''},
+            {title:'地板',name:'pt2', x:619, y:512,des:false,width:332,height:148,color:'rgb(52, 38, 13)',border:'rgb(128, 60, 32)',fns:null,code:''},
+            {title:'地板',name:'pt3', x:927, y:360,des:false,width:245,height:299,color:'rgb(52, 38, 13)',border:'rgb(128, 60, 32)',fns:null,code:''},
+            {title:'门',name:'pt4', x:617, y:363,des:false,width:91,height:143,color:'rgb(0, 73, 119)',border:'rgb(0, 106, 189)',fns:[['show','door',0,0],['(^\\d*$)']],code:'if not initiated:<br>&nbsp; &nbsp; _name_ = "door"<br>&nbsp; &nbsp; _value_ = 0<br>&nbsp; &nbsp; initiated = True<br>&nbsp; &nbsp; x = 0<br>&nbsp; &nbsp; y = get_value ("square")<br>&nbsp; &nbsp; while not (x != 0 and y % 2 == 0 and 5 * x == y):<br>&nbsp; &nbsp; &nbsp; &nbsp; sleep (100)<br>&nbsp; &nbsp; &nbsp; &nbsp; y = get_value ("square")<br>&nbsp; &nbsp; move ("down", 100)<br>else:<br>&nbsp; &nbsp; if message == "show":<br>&nbsp; &nbsp; &nbsp; &nbsp; show ()<br>&nbsp; &nbsp; if type (message) == "int":<br>&nbsp; &nbsp; &nbsp; &nbsp; x = 7 * message'},
+            {title:'门',name:'pt5', x:404, y:212,des:false,width:89,height:86,color:'rgb(0, 73, 119)',border:'rgb(0, 106, 189)',fns:[['show','door',0],['(^\\d*$)']],code:'if not initiated:<br>&nbsp; &nbsp; _name_ = "square"<br>&nbsp; &nbsp; _value_ = 0<br>&nbsp; &nbsp; initiated = True<br>else:<br>&nbsp; &nbsp; if message == "show":<br>&nbsp; &nbsp; &nbsp; &nbsp; show ()<br>&nbsp; &nbsp; if type (message) == "int":<br>&nbsp; &nbsp; &nbsp; &nbsp; _value_ = 3 * message'},
+
+        ];
+                
+        // 启动游戏
+        var game = null;
+        window.addEventListener('DOMContentLoaded', () => {
+            game = new CodeWorldGame(24,'#B47D46','#84705B',409,429,795,412,pts);
+            var gi = getCookie('hk_cw_game_h5');
+            if(gi < game.config.gamei) { game.gotoMain(); }
+            
+            // 消息框碰撞后事件处理
+            game.showRlt = function(pt, msg) {
+                if((pt == null) || (msg == '')) return;
+                var fns = pt && pt.hasOwnProperty('fns') ? pt.fns : null;
+                var rlt = this.hasFun(fns, msg);
+                if(rlt > -1){
+                    if((msg == 'show') && (pt.hasOwnProperty('code'))){
+                        this.show(pt.code);
+                    } else {
+                        if(pt.name == 'pt4'){
+                            pt.fns[0][2] = parseInt(msg) * 7;
+                            if((pt.fns[0][3] == 0) && 
+                               (pt.fns[0][2] > 0) &&
+                               (this.platforms[5].fns[0][2] % 2 == 0) &&
+                               (pt.fns[0][2] * 5 == this.platforms[5].fns[0][2])
+                             ){
+                                pt.fns[0][3] = 1;
+                                this.move(pt, 'down', 100);
+                             }
+                        }else if(pt.name == 'pt5'){
+                            pt.fns[0][2] = parseInt(msg) * 3;
+                        }
+                    }
+                }
+            }
+            
+            /**
+             * 执行步数最少的手动开平方根（牛顿迭代法）
+             * @param {number} n - 要开方的非负数
+             * @param {number} precision - 精度（默认1e-6，可按需调整）
+             * @returns {number} 平方根结果
+             */
+            game.fastSqrt = function(n, precision = 1e-6) {
+                // 边界处理（0和1直接返回，减少步数）
+                if (n === 0 || n === 1) return n;
+                
+                // 初始值（选n/2，收敛最快）
+                let x = n / 2;
+                // 仅需1次临时变量存储差值，减少内存操作
+                let diff;
+                
+                // 迭代：直到差值小于精度（通常3-5次循环结束）
+                do {
+                    // 牛顿核心公式（1次乘法+1次除法+1次除法，步数最少）
+                    const nextX = 0.5 * (x + n / x);
+                    // 计算差值，判断是否收敛
+                    diff = Math.abs(nextX - x);
+                    x = nextX;
+                } while (diff > precision);
+                
+                return x;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Code World - Platform Jumper</title>
+    <link  type="text/css" rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="game-container">
+        <!-- 游戏背景 -->
+        <div class="game-bg">
+            <p><font color=red>if not</font> _initiated:</p>
+            <p>&nbsp; &nbsp; _name = 'door'</p>
+            <p>&nbsp; &nbsp; _value_ = 'a'</p>
+            <p>&nbsp; &nbsp; _initiated = <font color=red>True</font></p>
+            <p>&nbsp; &nbsp; flag = <font color=red>false</font></p>
+            <p>&nbsp; &nbsp; count = 0</p>
+            <p>&nbsp; &nbsp; old_val = 0</p>
+            <p>&nbsp; &nbsp; <font color=red>while not</font> flag:</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; <font color=red>sleep</font> (100)</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; new_val = <font color=red>get_value</font> (_value_)</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; <font color=red>if</font> old_val != new_val:</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; old_val = new_val</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; count += 1</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <font color=red>if</font> count >= 10:</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; flag = <font color=red>True</font></p>
+        </div>
+        <div class="game-bg1">
+            <p><font color=red>if not</font> _initiated:</p>
+            <p>&nbsp; &nbsp; _name = 'door'</p>
+            <p>&nbsp; &nbsp; _value_ = 'a'</p>
+            <p>&nbsp; &nbsp; _initiated = <font color=red>True</font></p>
+            <p>&nbsp; &nbsp; flag = <font color=red>false</font></p>
+            <p>&nbsp; &nbsp; count = 0</p>
+            <p>&nbsp; &nbsp; old_val = 0</p>
+            <p>&nbsp; &nbsp; <font color=red>while not</font> flag:</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; <font color=red>sleep</font> (100)</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; new_val = <font color=red>get_value</font> (_value_)</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; <font color=red>if</font> old_val != new_val:</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; old_val = new_val</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; count += 1</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <font color=red>if</font> count >= 10:</p>
+            <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; flag = <font color=red>True</font></p>
+        </div>
+        <div class="left-btns">
+            <div class="left-a-btn"><div class="btns" id="newgb"><div class="bg"></div><p>New Game</p></div></div>
+            <div class="left-a-btn"><div class="btns" id="settb"><div class="bg"></div><p>Settings</p></div></div>
+            <div class="left-a-btn"><div class="btns" id="helpb"><div class="bg"></div><p>Help</p></div></div>
+        </div>
+        <div class="mid-btns-body"><div class="mid-btns" id="mid-btns"></div></div>
+        <div class="right-btns"><div class="btns" id="rbtn"><div class="bg"></div><p>➧</p></div></div>
+        <!-- 帮助中心 -->
+        <div class="victory-modal" id="help">
+            <div class="victory-content">
+                <h2>🎉 命令说明 🎉</h2>
+                <p style="text-align:left;font-size:12px;">
+                布尔类型转换 bool(val)　　　将参数转换为布尔类型。例：bool (1) == True。<br><br>
+                对象销毁 destroy(obj_name)　　销毁所有名称与 obj_name 匹配的设备 / 对象。<br><br>
+                代码编辑 edit(...)　　　在编辑器中打开该对象的代码。编辑后的代码仅允许包含作为 edit 函数参数指定名称的函数。<br><br>
+                存在性判断 exists(obj_name)　　若名称为 obj_name 的对象存在，返回 True；否则返回 False。<br><br>
+                取值 get_value(obj_name)　　获取名称为 obj_name 的对象的值并返回。<br><br>
+                整数类型转换 int(val)　　　将参数转换为整数类型。例：int ('123') == 123。<br><br>
+                长度获取 len(str_or_tuple)　　获取对象的长度。参数可为字符串或元组。<br><br>
+                最大值获取 max(x, y)　　返回两个参数中的较大值。<br><br>
+                最小值获取 min(x, y)　　返回两个参数中的较小值。<br><br>
+                移动 move(dir, dist)　　让调用此函数的对象沿指定方向 dir（可选值：'up' 向上、'right' 向右、'down' 向下、'left' 向左）移动指定距离 dist。<br><br>
+                随机整数生成 random(n, m)　　返回 n 到 m（包含 n 和 m）之间的随机整数。<br><br>
+                范围生成 range(n)　　返回一个元组，包含从 0 到 n-1 的 n 个整数（包含边界）。<br><br>
+                定向发送消息 send(dir, msg)　　沿指定方向 dir（可选值：'up'/'right'/'down'/'left'）发送消息 msg。<br><br>
+                定向对象发消息 send_to(obj_name, msg)　　立即向所有名称为 obj_name 的对象发送消息 msg。<br><br>
+                代码查看 show()　　在查看器中打开调用此函数的对象的代码。<br><br>
+                延时 sleep(ms)　　将代码执行暂停 ms 毫秒。<br><br>
+                字符串类型转换 str(val)　　将参数转换为字符串类型。例：str (123) == '123'。<br><br>
+                元组创建 tuple(...)　　返回一个包含所有参数的元组，保留参数原有顺序。例：tuple (1) + tuple (2) == tuple (1, 2)。<br><br>
+                类型判断 type(v)　　若 v 是整数返回 'int'，是字符串返回'str'，是布尔值（True/False）返回 'bool'，是元组返回 'tuple'。<br><br>
+                </p>
+                <button onclick="this.parentNode.parentNode.style.display='none';">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function $(id){ return document.getElementById(id); }
+        
+        //设置cookie
+        function setCookie(key, val, time){
+            var date = new Date(new Date().getTime()+ time*24*60*60*1000).toUTCString();
+            var cookie_path = window.location.pathname;
+            cookie_path = cookie_path.substring(0, cookie_path.lastIndexOf('/') + 1);
+            document.cookie = key+"="+val+"; expires="+ date +"; path="+ cookie_path;
+        }
+        //读取cookie
+        function getCookie(key){ 
+          var rlt = document.cookie.match( new RegExp("(^|\\s)"+ key +"=([^;]+)(;|$)"));
+          return rlt == null ? -1 : rlt[2];
+        }
+        //删除cookie
+        function delCookie(key){ setCookie(key, -1, -1); }
+        
+        //按钮
+        var page=0;
+        $('helpb').onclick = function(){
+            $('help').style.display = 'block';
+        }
+        $('newgb').onclick = function(){
+            delCookie('hk_cw_game_h5');
+            location.reload();
+        }
+        $('rbtn').onclick = function(){
+            if(page==0){
+                page = 1;
+                $('mid-btns').style.marginTop = '-620px';
+                $('rbtn').parentNode.style.transform = 'rotate(180deg)';
+                $('rbtn').parentNode.style.left = '390px';
+                $('mid-btns').parentNode.style.left = '530px';
+            } else {
+                page = 0;
+                $('mid-btns').style.marginTop = '0';
+                $('rbtn').parentNode.style.transform = '';
+                $('rbtn').parentNode.style.left = '1016px';
+                $('mid-btns').parentNode.style.left = '390px';
+            }
+        }
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+        });
+        
+        function initGame() {
+            var gamei = getCookie("hk_cw_game_h5");
+            var str = '';
+            var i = 0;
+            for(; i<gamei; i++){
+                str +='<div class="mid-a-btn"><div class="btns" id="g'+i+'" onclick="location.href=\'cw'+i+'.html\'"><div class="bg"></div><p>'+i+'</p><p class="pink">✯</p></div></div>';
+            }
+            if(i<50) str +='<div class="mid-a-btn"><div class="btns" id="g'+i+'" onclick="location.href=\'cw'+i+'.html\'"><div class="bg"></div><p>'+i+'</p></div></div>';
+            for(++i; i<50; i++){
+                str +='<div class="mid-a-btn"><div class="btns" id="g'+i+'"><div class="bg"></div><p>'+i+'</p><p class="red">☠</p></div></div>';
+            }
+            $('mid-btns').innerHTML = str;
+            if(gamei > 24) { 
+                $('rbtn').onclick(); 
+            }
+            if(isMobile()){
+                let w = document.body.clientWidth;
+                let h = document.body.clientHeight;
+                if(w < h){
+                    alert('请使用横屏模式');
+                }
+            }
+        }
+        
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+    </script>
+</body>
+</html>

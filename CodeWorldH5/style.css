@@ -1,0 +1,37 @@
+* {margin: 0;padding: 0;box-sizing: border-box;font-family: 'Courier New', monospace;}
+body {background: #0a0e17;display: flex;justify-content: center;align-items: center;overflow: auto;}
+#game-container {position: absolute;box-sizing:border-box;width:1176px;height:664px;left:50%;top:50%;margin:-332px 0 0 -588px;border: 3px solid #00ff88;border-radius: 8px;box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);overflow:hidden;}
+.game-hud {position: absolute;bottom: 20px;right: 45%;background: rgba(0, 0, 0, 0.8);color: #00ff88;padding: 15px 30px;border: 2px solid #00ff88;border-radius: 8px;font-size: 18px;text-align: center;z-index: 10;}
+.game-menu {position: absolute;bottom: 20px;right: 20px;background: rgba(0, 0, 0, 0.8);color: #00ff88;padding: 10px 15px;border: 2px solid #00ff88;border-radius: 8px;font-size: 14px;z-index: 10;}
+.game-bg {background: #0a0e17;width:100%;height:100%;position:absolute;z-index:-2;left:0;top:0;color:#34cfbe;filter: blur(2px);/* 设置模糊程度 */box-sizing:border-box;padding:10px;font-size:40px;line-height:43px;}
+.game-bg1 {background: #0a0e17;width:100%;height:100%;position:absolute; z-index:-1;left:78%;top:0;color:#34cfbe;filter: blur(2px);/* 设置模糊程度 */box-sizing:border-box;padding:10px;font-size:40px;line-height:43px;}
+#game-canvas {display: block;background: linear-gradient(#1e3c72, #2a5298);}
+.left-btns {position:absolute;width:300px;left:20px;top: 20px;}
+.left-a-btn{width:300px;height:90px;}
+.btns{cursor: default;position:relative;width:100%; height:100%;font-size:40px;color: #34cfbe;margin:10px;font-weight:600;display:flex;align-items: center;justify-content: space-between;box-sizing:border-box;}
+.btns .bg{position: absolute;top: 0;left: 0;width: 100%;height: 100%;border:4px solid #023e34;background:#002727;border-radius: 20px;opacity: 0.85;}
+.btns:hover .bg{background:#647575; border:4px solid #425954;}
+.btns p {position: relative;z-index: 1; margin: 0 20px;}
+.mid-btns .btns p:nth-child(2){margin:0 0 0 10px;}
+.mid-btns .btns p:nth-child(3){margin:0 10px 0 0;}
+.pink{color:#b01aff;}
+.red{color:#bd0040;}
+.mid-btns-body{position:absolute;left: 390px;top: 20px;width:620px;height:620px;overflow:hidden;}
+.mid-btns{width:616px;height:1240px;display:flex;flex-wrap: wrap;justify-content: space-between; }
+.mid-a-btn {width: 115px;height:115px;}
+.mid-btns .btns{ margin:0;}
+.right-btns{position:absolute;left: 1016px;top: 250px;width: 120px;height:140px;display:flex;justify-content: space-between;box-sizing:border-box;}
+.right-btns p{font-size:160px;margin-top:-13px;}
+/* 胜利弹窗 */
+.victory-modal {position: absolute;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0, 0, 0, 0.9);display: none;justify-content: center;align-items: center;z-index: 20;overflow:hidden;}
+.victory-content {background: #111;border: 3px solid #00ff88;border-radius: 10px; padding: 40px;text-align: center;}
+.victory-content h2 {color: #00ff88;font-size: 48px; margin-bottom: 20px;}
+.victory-content p {color: #00ff88;font-size: 24px;margin-bottom: 30px;}
+.victory-content button {background: #00ff88;color: #000;border: none;padding: 15px 30px;font-size: 20px;font-weight: bold;border-radius: 8px;cursor: pointer;transition: background 0.3s;}
+.victory-content button:hover {background: #00cc66;}
+#codev{padding:10px;text-align:left;font-size:12px;height:495px;overflow:auto;line-height:20px;}
+/* 游戏加载提示 */
+.loading { position: absolute;top: 50%; left: 50%;transform: translate(-50%, -50%);color: #00ff88;font-size: 24px;}
+@media (max-width: 768px) {
+    #game-container{left:0;top:0;margin:0;}
+}
