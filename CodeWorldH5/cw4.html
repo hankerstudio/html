@@ -110,7 +110,7 @@
                         $('code').style.display = 'block';
                     } else {
                         if(''+parseInt(msg) == msg){ //数字
-                            pt.fns[0][2] = 'True';
+                            if(parseInt(msg) * 3 + 1 == 142) pt.fns[0][2] = 'True';
                         }
                         if(pt.fns[0][2] == 'True'){
                             if(msg == 'wall 1') {
