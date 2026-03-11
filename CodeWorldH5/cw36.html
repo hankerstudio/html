@@ -137,7 +137,7 @@
                 var fns = pt && pt.hasOwnProperty('fns') ? pt.fns : null;
                 var rlt = this.hasFun(fns, msg);
                 if(rlt > -1){
-                    if((msg == 'show') && (pt.hasOwnProperty('code')) && (pt.name == 'pt6') && (pt.code.replace(/ /g,'').indexOf('edit(')>0)){
+                    if((pt.name == 'pt6') && (pt.code.replace(/ /g,'').indexOf('edit(')>0)){
                         this.edit(pt.code, 6);
                     }else if((msg == 'show') && (pt.hasOwnProperty('code')) && (pt.name != 'pt6')){
                         this.show(pt.code);
@@ -147,6 +147,7 @@
                         }else if(pt.name == 'pt6'){
                             var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
                             if((c.indexOf('send(') < 0)) return;
+                            c = c.replace(/<span(.*?)>/g, '').replace(/<\/span>/g, '');
                             c = c.replace(/<\/div>/g, '').replace(/<div>/g, '<br>').replace(/<br>/g, ';');
                             c = c.substr(c.indexOf('else:;')+6);
                             c = c.replace(/send\(/g,'this.send(pt,');

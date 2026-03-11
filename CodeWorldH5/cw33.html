@@ -163,6 +163,8 @@
                         }else if((pt.name == 'pt8') || (pt.name == 'pt9')) {
                             //这关强制按代码执行,代码不对则无法过关
                             var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
+                            if((c.indexOf('send(') < 0)) return;
+                            c = c.replace(/<span(.*?)>/g, '').replace(/<\/span>/g, '');
                             c = c.replace(/<\/div>/g, '').replace(/<div>/g, '<br>').replace(/<br>/g, ';');
                             c = c.substr(c.indexOf('else:;')+6);
                             c = c.replace(/send\(/g,'this.send(pt,');
