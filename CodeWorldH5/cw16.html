@@ -119,6 +119,7 @@
                             up = up.substr(ind + 10);
                             up = up.substr(0,up.indexOf(')'));
                             up = parseInt(up.substr(up.indexOf(',')+1));
+                            if(Number.isNaN(up)) return;
                             this.move(pt, 'up', up);
                         }
                         if((c.indexOf('move("right"')>0) || (c.indexOf("move('right'")>0)){
@@ -129,6 +130,7 @@
                             r = r.substr(ind + 13);
                             r = r.substr(0,r.indexOf(')'));
                             r = parseInt(r.substr(r.indexOf(',')+1));
+                            if(Number.isNaN(r)) return;
                             this.move(pt, 'right', r);
                         }
                         if((c.indexOf('destroy("door")')>0) || (c.indexOf("destroy('door')")>0)) {
