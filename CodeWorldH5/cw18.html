@@ -150,7 +150,7 @@
                                 this.send_to(this.platforms[5], 'show');
                             }
                         }else if(pt.name == 'pt6') {
-                            if((c.indexOf('inmessage:') < 0) || (c.indexOf('_value_+=1') < 0)) return;
+                            if((c.indexOf('inmessage:') < 0) || (c.indexOf('+=1') < 0)) return;
                             pt.fns[0][2] = msg.length;
                         }else if(pt.name == 'pt8') {
                             if(parseInt(msg) == this.platforms[7].fns[0][2]){
