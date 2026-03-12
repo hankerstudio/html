@@ -24,6 +24,406 @@ function getCookie(key){
 //删除cookie
 function delCookie(key){ setCookie(key, -1, -1); }
 
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+/**
+ * 将 HTML 实体转换为对应的字符
+ * @param {string} str - 包含 HTML 实体的字符串
+ * @returns {string} 转换后的字符串
+ */
+function decodeHtmlEntities(str) {
+  // 处理空值情况，避免报错
+  if (!str) return str;
+  
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<body>${str}</body>`, 'text/html');
+  return doc.body.textContent;
+}
+
+//获取文本真实长度(px)
+function textLength(str, style={}){
+  if (!str) return 0;
+  
+  // 创建临时 Canvas 元素
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // 设置文本样式（默认值可根据需求调整）
+  ctx.font = style.font || '24px bold serif'; // 默认字体和大小
+  ctx.textBaseline = 'top';
+  
+  // 计算并返回像素宽度
+  return parseInt(ctx.measureText(str).width);
+}
+
+//将python格式的代码转为js格式代码
+function runCode(c, msg){
+    if(c.replace(/&nbsp;/g,'').replace(/ /g, '').indexOf('edit(') > 0) return -1;
+    c = c.replace(/&nbsp;/g,' ');//.replace(/  /g, ' ');
+    c = c.replace(/<span(.*?)>/g, '').replace(/<\/span>/g, '');
+    c = c.replace(/<\/div>/g, '').replace(/<div(.*?)>/g, '<br>').replace(/<br>/g, ';');
+    c = decodeHtmlEntities(c);
+    c = c.replace(/else(.*?):(.*?);/, 'else:;');
+    c = c.substr(c.indexOf('else:;')+6);
+    var codes = c.split(';');
+    var str = '';
+    
+    let indentLevel = 1; // 当前缩进级别
+    const indentSize = 4; // 每个缩进级别对应2个空格
+    const declaredVars = new Set(); // 记录已声明的变量，避免重复var
+    codes.forEach(s => {
+        if(s.trim() == '') return;
+        let currentLine = s;
+        // 计算当前行的缩进深度（按4个空格为1级，Python标准）
+        const currentIndent = (currentLine.match(/^ +/) || [''])[0].length / indentSize;
+        
+        // 处理缩进回退（比如循环/条件结束后的行）
+        while (currentIndent < indentLevel) {
+            indentLevel--;
+            str += (' '.repeat(indentLevel * indentSize) + '}');
+        }
+
+        // 去除行尾注释
+        if(currentLine.indexOf('#')>0) currentLine = currentLine.substr(0, currentLine.indexOf('#'));
+        // 去除行首缩进和行尾冒号
+        currentLine = currentLine.trim().replace(/:$/, '');
+        // and or => && ||
+        currentLine = currentLine.replace(/\s+and\s+/g, ' && ').replace(/\s+or\s+/g, ' || ');
+
+        // 规则1：变量赋值补充var声明
+        const varMatch = currentLine.match(/^(\w+)\s*=\s*.+/);
+        if (varMatch && !currentLine.startsWith('while') && !currentLine.startsWith('if')) {
+            const varName = varMatch[1];
+            if (!declaredVars.has(varName)) {
+                currentLine = currentLine.replace(/^(\w+)/, `var $1`);
+                declaredVars.add(varName);
+            }
+        }
+
+        // 规则2：len(xxx) → xxx.length
+        currentLine = currentLine.replace(/len\((.*?)\)/g, '$1.length');
+
+        // 规则3：int(xxx) → parseInt(xxx)
+        currentLine = currentLine.replace(/int\((.*?)\)/g, 'parseInt($1)');
+        
+        // 规则4：tupple() → []
+        currentLine = currentLine.replace(/tuple\(\)/g, 'new Array()');
+
+        // 规则5：str(xxx) → xxx
+        currentLine = currentLine.replace(/str\((.*?)\)/g, '$1');
+
+        // 规则6：处理while/if的括号和大括号
+        if (currentLine.startsWith('while')) {
+            // while message[i] != ' ' → while(message[i] != ' ') { .replace(/(.*?)\[(.*?)\](.*)/,'$1.charAt($2)$3')
+            currentLine = currentLine.replace(/^while (.*)/, 'while($1) {');
+            indentLevel++;
+        } else if (currentLine.startsWith('for')) {
+            if(currentLine.match(/^for\s+.*\s+in\s+range\((.*?)\)/)){
+                currentLine = currentLine.replace(/^for (.*) in range\((.*)\)/, 'for(var iii=0; iii<parseInt($2); iii++){var $1 = iii;');
+            }else if(currentLine.match(/^for\s+.*\s+in\s+(.*)/)){
+                currentLine = currentLine.replace(/^for (.*) in (.*)/, 'for(var iii=0; iii<$2.length; iii++){var $1 = $2[iii];');
+            }
+            indentLevel++;
+        } else if (currentLine.startsWith('if')) {
+            // if int(v) < _value_ → if(parseInt(v) < _value_) {
+            currentLine = currentLine.replace(/^if (.*)/, 'if($1) {');
+            indentLevel++;
+        } else if(currentLine.startsWith('else')){
+            currentLine = currentLine + '{';
+            indentLevel++;
+        } else if(currentLine.match(/^(.*?)\s+\+=\s+tuple\(/)){ //数组操作
+            currentLine = currentLine.replace(/^(.*?)\s+\+=\s+tuple\((.*?)\)(.*)/, '$1.push($2)$3;');
+        } else {
+            // 普通语句补充分号.replace(/(.*?)\[(.*?)\](.*)/,'$1.charAt($2)$3')
+            currentLine = currentLine + ';';
+        }
+
+        // 添加缩进并推入结果数组
+        const indentStr = ' '.repeat((indentLevel - (currentLine.indexOf('{')>0 ? 1 : 0)) * indentSize);
+        str += (indentStr + currentLine);
+    });
+    for(var i=1; i<indentLevel; i++){
+        str += '}';
+    }
+    str += 'return _value_;';
+    var rlt = '';
+    try{
+        var chgCode = new Function('message', str);
+        rlt = chgCode(msg);
+    }catch{
+        rlt = -1;
+    }
+    return rlt;
+}
+
+(function(){
+    if(!isMobile()) return;
+    document.body.innerHTML += `
+    <!-- 控制器主容器 -->
+        <!-- 左侧方向控制器 -->
+        <div class="direction-controller controller-container" id="directionController">
+            <div class="direction-knob" id="directionKnob"></div>
+        </div>
+
+        <!-- 右侧功能按键 -->
+        <div class="function-buttons controller-container">
+            <button class="func-btn" data-key="back">返回</button>
+            <button class="func-btn" data-key="enter">回车</button>
+            <button class="func-btn" data-key="replay">重玩</button>
+            <button class="func-btn" data-key="jump">跳跃</button>
+        </div>
+    `;
+    const directionController = document.getElementById('directionController');
+    const directionKnob = document.getElementById('directionKnob');
+    const funcButtons = document.querySelectorAll('.func-btn');
+    const debugInfo = document.querySelector('.debug-info');
+
+    // 方向控制器参数
+    const controllerRadius = directionController.offsetWidth / 2;
+    const knobRadius = directionKnob.offsetWidth / 2;
+    const maxMoveDistance = controllerRadius - knobRadius; // 圆球最大移动距离
+
+    // 方向状态
+    let state = {
+        direction: {
+            isDragging: false,
+            touchId: -1, 
+            currentDirection: '无',
+            x: 0,
+            y: 0
+        },
+        funcKeys: new Set()
+    };
+
+    // ======================
+    // 方向控制器逻辑（支持多触摸点）
+    // ======================
+    function startDrag(e) {
+        e.preventDefault();
+        e.stopPropagation(); // 阻止事件冒泡到按键
+
+        // 区分鼠标和触摸事件
+        if (e.type === 'mousedown') {
+            state.direction.isDragging = true;
+            updateKnobPosition(e.clientX, e.clientY);
+        } else if (e.type === 'touchstart') {
+            // 记录当前触摸点ID，避免和按键触摸冲突
+            const touch = e.touches[0];
+            state.direction.touchId = touch.identifier;
+            state.direction.isDragging = true;
+            updateKnobPosition(touch.clientX, touch.clientY);
+        }
+    }
+
+    function dragMove(e) {
+        if(e.target.id != 'directionKnob') return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!state.direction.isDragging) return;
+
+        // 处理鼠标移动
+        if (e.type === 'mousemove') {
+            updateKnobPosition(e.clientX, e.clientY);
+        } 
+        // 处理触摸移动（找到摇杆对应的触摸点）
+        else if (e.type === 'touchmove') {
+            for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                if (touch.identifier === state.direction.touchId) {
+                    updateKnobPosition(touch.clientX, touch.clientY);
+                    break;
+                }
+            }
+        }
+    }
+
+    function endDrag(e) {
+        if(e.target.id != 'directionKnob') return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        // 鼠标松开
+        if (e.type === 'mouseup' || e.type === 'mouseleave') {
+            resetDirection();
+        }
+        // 触摸结束（判断是否是摇杆的触摸点）
+        else if (e.type === 'touchend' || e.type === 'touchcancel') {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const touch = e.changedTouches[i];
+                if (touch.identifier === state.direction.touchId) {
+                    resetDirection();
+                    state.direction.touchId = -1;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // 重置方向摇杆状态
+    function resetDirection() {
+        if (state.direction.isDragging) {
+            state.direction.isDragging = false;
+            directionKnob.style.transform = 'translate(-50%, -50%)';
+            if(!game) return;
+            game.gameState.keys.left = false;
+            game.gameState.keys.right = false;
+        }
+    }
+    
+    // 更新圆球位置和方向判断
+    function updateKnobPosition(clientX, clientY) {
+        // 获取控制器中心坐标
+        const rect = directionController.getBoundingClientRect();
+        const centerX = rect.left + controllerRadius;
+        const centerY = rect.top + controllerRadius;
+        
+        // 计算偏移量
+        let dx = clientX - centerX;
+        let dy = clientY - centerY;
+        
+        // 计算偏移距离
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 限制最大移动距离
+        if (distance > maxMoveDistance) {
+            const ratio = maxMoveDistance / distance;
+            dx *= ratio;
+            dy *= ratio;
+        }
+        
+        // 设置圆球位置
+        directionKnob.style.transform = `translate(${dx - knobRadius}px, ${dy - knobRadius}px)`;
+        
+        // 判断方向（8方向简化为4方向）
+        let dir = getDirection(dx, dy);
+        if(!game) return;
+        if(dir == '左'){ game.gameState.keys.left = true; }
+        else if(dir == '右'){ game.gameState.keys.right = true; }
+        //else if(dir == '上'){ game.gameState.keys.up = true; }
+        //else if(dir == '下'){ game.gameState.keys.down = true; }
+    }
+
+    // 根据偏移量判断方向
+    function getDirection(dx, dy) {
+        const threshold = 10; // 最小触发阈值（避免微小移动误判）
+        
+        if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) {
+            return '无';
+        }
+        
+        // 优先判断上下
+        if (Math.abs(dy) > Math.abs(dx)) {
+            return dy < 0 ? '上' : '下';
+        } else {
+            return dx > 0 ? '右' : '左';
+        }
+    }
+
+    // ======================
+    // 功能按键逻辑
+    // ======================
+    function bindFuncButtons() {
+        funcButtons.forEach(btn => {
+            // 按下事件（触摸/鼠标）
+            btn.addEventListener('touchstart', handleFuncKeyDown);
+            btn.addEventListener('mousedown', handleFuncKeyDown);
+
+            // 松开事件（触摸/鼠标）
+            btn.addEventListener('touchend', handleFuncKeyUp);
+            btn.addEventListener('mouseup', handleFuncKeyUp);
+            btn.addEventListener('mouseleave', handleFuncKeyUp);
+            btn.addEventListener('touchcancel', handleFuncKeyUp);
+        });
+    }
+    
+    // 功能按键按下处理
+    function handleFuncKeyDown(e) {
+        e.preventDefault();
+        e.stopPropagation(); // 阻止事件冒泡到摇杆
+        const key = this.dataset.key;
+        //const keyName = this.textContent;
+        
+        // 添加到按下的按键集合
+        //state.funcKeys.add(`${keyName}(${key})`);
+        onFuncKeyDown(key);
+    }
+
+    // 功能按键松开处理
+    function handleFuncKeyUp(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const key = this.dataset.key;
+        //const keyName = this.textContent;
+        
+        // 从集合中移除
+        //state.funcKeys.delete(`${keyName}(${key})`);
+        onFuncKeyUp(key);
+    }
+
+    // 功能按键按下回调（可自定义业务逻辑）
+    function onFuncKeyDown(key) {
+        if(!game) return;
+        switch(key) {
+            case 'enter':
+                if(game.gameState.keys.enter == false){
+                    game.showInputbox();
+                } else {
+                    game.sendInputmsg();
+                }
+                break;
+            case 'back':
+                //game.gameState.keys.esc = true;
+                location.href = 'index.html';
+                break;
+            case 'jump':
+                game.gameState.keys.space = true;
+                break;
+            case 'replay':
+                //game.gameState.keys.shift = true;
+                game.restartGame();
+                break;
+        }
+    }
+
+    // 功能按键松开回调（可自定义业务逻辑）
+    function onFuncKeyUp(key) {
+        if(!game) return;
+        switch(key) {
+            case 'enter':
+                //game.gameState.keys.enter = false;
+                break;
+            case 'back':
+                //game.gameState.keys.esc = false;
+                break;
+            case 'jump':
+                game.gameState.keys.space = false;
+                break;
+            case 'replay':
+                //game.gameState.keys.shift = false;
+                break;
+        }
+    }
+
+    // ======================
+    // 绑定事件
+    // ======================
+    // 方向控制器事件（兼容触摸和鼠标）
+    directionKnob.addEventListener('touchstart', startDrag);
+    directionKnob.addEventListener('mousedown', startDrag);
+
+    document.addEventListener('touchmove', dragMove);
+    document.addEventListener('mousemove', dragMove);
+
+    document.addEventListener('touchend', endDrag);
+    document.addEventListener('mouseup', endDrag);
+    document.addEventListener('mouseleave', endDrag); // 鼠标移出窗口也重置
+
+    // 功能按键事件
+    bindFuncButtons();
+})();
 
 // 游戏核心类
 class CodeWorldGame {
@@ -50,6 +450,8 @@ class CodeWorldGame {
             gamei: gi,
             bgc1: bc1, //界面背景?
             bgc2: bc2, //界面背景深
+            playerx: px,
+            playery: py
         };
         
         //this.canvas.width = this.config.canvasWidth;
@@ -98,6 +500,7 @@ class CodeWorldGame {
         // 平台配置（还原截图中的平台布局）
         //fns:[['可用方法名','方块名称','方块value值','其它自定义变量',...],['可用方法名','其它自定义变量',...],...]
         this.platforms = pts;
+        this.platforms_bak = pts;
         
         // 背景装饰元素
         this.backgroundElements = [];
@@ -127,30 +530,6 @@ class CodeWorldGame {
     showRlt(pt, msg) {
         ;
     }
-            
-    gcd(a, b) { //递归求最大公约数
-        if (b === 0) { return a; }
-        return this.gcd(b, a % b);
-    }
-            
-    isValid(s) { //括号是否合法
-        const obj ={
-            "(":")"//,
-            //"{":"}",
-            //"[":"]"
-        } 
-        let stack = [];
-        for(let i =0;i<s.length;i++){
-            if(s[i] in obj ){
-                stack.push(s[i])
-            }else if(s[i] !== obj[stack[stack.length - 1]]){
-                return false
-            }else{
-                stack.pop()
-            }
-        }
-        return stack.length === 0 
-    };
     
     random(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -276,6 +655,21 @@ class CodeWorldGame {
         }
     }
     
+    showInputbox(){
+        if($('code').style.display == 'block') return;
+        this.gameState.keys.enter = true;
+        $('val').value = "";
+        $('msg').style.display='block';
+        $('dir'+$('dir').value).style.background='red';
+        $('val').focus();
+    }
+    
+    sendInputmsg(){
+        this.gameState.keys.enter = false;
+        $('msg').style.display='none';
+        this.setMsg(this.player, $('val').value, $('dir').value);
+    }
+    
     // 初始化事件监听
     initEventListeners() {
         // 键盘按下事件
@@ -306,16 +700,9 @@ class CodeWorldGame {
                     break;
                 case 'Enter':
                     if(this.gameState.keys.enter == false){
-                        if($('code').style.display == 'block') break;
-                        this.gameState.keys.enter = true;
-                        $('val').value = "";
-                        $('msg').style.display='block';
-                        $('dir'+$('dir').value).style.background='red';
-                        $('val').focus();
+                        this.showInputbox();
                     } else {
-                        this.gameState.keys.enter = false;
-                        $('msg').style.display='none';
-                        this.setMsg(this.player, $('val').value, $('dir').value);
+                        this.sendInputmsg();
                     }
                     break;
                 case 'Escape':
@@ -426,7 +813,7 @@ class CodeWorldGame {
         if(msg == '') return;
         var x = pt.x;
         var y = pt.y;
-        var w = msg.length * 12 + 15 + 15;
+        var w = textLength(msg) + 30;//msg.length * 12 + 15 + 15;
         var h = 50;
         x += (pt.width - w) / 2;
         y += (pt.height - h) / 2;
@@ -748,10 +1135,10 @@ class CodeWorldGame {
             (platform.y + platform.height >= this.config.mousey) && (platform.y <= this.config.mousey)) {
                 var x = this.config.mousex;
                 var y = this.config.mousey;
-                var l = (''+platform.fns[0][1]).length;
-                var l1 = (''+platform.fns[0][2]).length;
+                var l = textLength('88888888'+platform.fns[0][1]); //(''+platform.fns[0][1]).length;
+                var l1 = textLength('88888888'+platform.fns[0][2]); //(''+platform.fns[0][2]).length;
                 l = l1 > l ? l1 : l;
-                var w = ((l < 4 ? 4 : l) + 7) * 15;
+                var w = l; //((l < 4 ? 4 : l) + 7) * 15;
                 var h = 100;
                 this.fillRoundRect(this.ctx, x, y, w, h, 8, '#001B1B');
                 this.strokeRoundRect(this.ctx, x, y, w, h, 8, '#0A373F');
@@ -935,7 +1322,17 @@ class CodeWorldGame {
     
     // 重启游戏
     restartGame() {
-        location.reload();
+        //location.reload(true);
+        this.player.x = this.config.playerx;
+        this.player.y = this.config.playery;
+        this.player.velocityX = 0;
+        this.player.velocityY = 0;
+        this.player.state = 'grounded';
+        this.player.isGrounded = false;
+        this.collectible.collected = false;
+        this.gameState.hasWon = false;
+        this.victoryModal.style.display = 'none';
+        this.platforms = structuredClone(this.platforms_bak);
     }
     
     // 返回主界面
