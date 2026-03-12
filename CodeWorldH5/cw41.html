@@ -175,13 +175,15 @@
                             let a = this.gcd(parseInt(arr[0]), parseInt(arr[1]));
                             this.setMsg(pt, ''+a, '1');
                         }else if(pt.name == 'pt7') {
-                            if((c.indexOf('len(') < 0) || (c.indexOf('int(') < 0)) return;
-                            let arr = msg.split(' ');
-                            let a = this.gcd(parseInt(arr[0]), parseInt(arr[1]));
-                            pt.fns[0][2] = a;
+                            pt.fns[0][2] = runCode(pt.code, msg);
                         }
                     }
                 }
+            }
+            
+            game.gcd = function(a, b) { //递归求最大公约数
+                if (b === 0) { return a; }
+                return this.gcd(b, a % b);
             }
         });
     </script>

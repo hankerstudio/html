@@ -161,14 +161,31 @@
                             }
                         }else if(pt.name == 'pt6'){
                             let a = this.isValid(msg);
-                            this.setMsg(pt, a?'Yes':'No', '1');
+                            this.setMsg(pt, a?'yes':'no', '1');
                         }else if(pt.name == 'pt7') {
-                            if((c.indexOf('len(') < 0) || (c.indexOf('for') < 0)) return;
-                            let a = this.isValid(msg);
-                            pt.fns[0][2] = a?'Yes':'No';
+                            pt.fns[0][2] = runCode(pt.code, msg);
                         }
                     }
                 }
+            }
+            
+            game.isValid = function(s) { //括号是否合法
+                const obj ={
+                    "(":")"//,
+                    //"{":"}",
+                    //"[":"]"
+                } 
+                let stack = [];
+                for(let i =0;i<s.length;i++){
+                    if(s[i] in obj ){
+                        stack.push(s[i])
+                    }else if(s[i] !== obj[stack[stack.length - 1]]){
+                        return false
+                    }else{
+                        stack.pop()
+                    }
+                }
+                return stack.length === 0 
             }
         });
     </script>
