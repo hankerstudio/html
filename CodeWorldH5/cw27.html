@@ -156,15 +156,7 @@
                             }
                             this.setMsg(pt, b, '1');
                         }else if(pt.name == 'pt7') {
-                            var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
-                            //for c in message: str = c + str,
-                            if((c.indexOf('inmessage:') < 0) || (c.indexOf('+') < 0)) return;
-                            let a = parseInt(msg);
-                            let b = '';
-                            for(var i=0; i<msg.length; i++){
-                                b = msg.charAt(i) + b;
-                            }
-                            pt.fns[0][2] = b;
+                            pt.fns[0][2] = runCode(pt.code, msg);
                         }
                     }
                 }

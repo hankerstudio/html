@@ -159,12 +159,7 @@
                             let a = msg.replace(/ /g, '');
                             this.setMsg(pt, a, '1');
                         }else if(pt.name == 'pt7') {
-                            var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
-                            //粗略验证是否这两个方法都用上了, 实际需要把每行代码转为js方法来执行
-                            //这里是游戏没必要太认真,只需要明白原理就行了
-                            if((c.indexOf('inmessage:') < 0) || (c.indexOf('!=') < 0)) return;
-                            let a = msg.replace(/ /g, '');
-                            pt.fns[0][2] = a;
+                            pt.fns[0][2] = runCode(pt.code, msg);
                         }
                     }
                 }

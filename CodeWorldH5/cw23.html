@@ -157,10 +157,7 @@
                             let a = this.fastSqrt(v,0);
                             this.setMsg(pt, ''+a, '1');
                         }else if(pt.name == 'pt7') {
-                            if((c.indexOf('while') < 0) || (c.indexOf('*') < 0)) return;
-                            let v = parseInt(msg);
-                            let a = this.fastSqrt(v,0);
-                            pt.fns[0][2] = a;
+                            pt.fns[0][2] = runCode(pt.code, parseInt(msg));
                         }
                     }
                 }

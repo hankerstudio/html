@@ -128,7 +128,6 @@
                             this.show(pt.code);
                         }
                     } else {
-                        var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
                         if(pt.name == 'pt4'){
                             if(msg == 'generator'){
                                 this.send_to(this.platforms[8], 'show');
@@ -155,20 +154,14 @@
                             }
                             this.setMsg(pt, ''+b, '1');
                         }else if(pt.name == 'pt7') {
-                            if(c.indexOf('inmessage:') > 0){
+                            var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
+                            if(c.indexOf('inmessage:') > 0){ //这种以字符串来处理的报错, 本关只能以数字形式来处理
                                 alert('SYSTEM FAILTURE');
                                 this.restartGame();
                                 return;
                             }
-                            //数字每一位相加一定需要用到%10, 这里强制用while, 用for也可以的,
-                            if((c.indexOf('while') < 0) || (c.indexOf('%') < 0)) return;
-                            let a = parseInt(msg);
-                            let b = 0;
-                            while(a>0){
-                                b += a % 10;
-                                a = parseInt(a / 10);
-                            }
-                            pt.fns[0][2] = b;
+                            //数字
+                            pt.fns[0][2] = runCode(pt.code, parseInt(msg));
                         }
                     }
                 }
