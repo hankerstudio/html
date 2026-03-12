@@ -174,13 +174,7 @@
                             });
                             this.setMsg(pt, ''+a, '1');
                         }else if(pt.name == 'pt7') {
-                            if((c.indexOf('int(') < 0) || (c.indexOf('+') < 0)) return;
-                            let arr = msg.split(' ');
-                            let a = 0;
-                            arr.forEach(v=>{
-                                a += parseInt(v);
-                            });
-                            pt.fns[0][2] = a;
+                            pt.fns[0][2] = runCode(pt.code, msg);
                         }
                     }
                 }
