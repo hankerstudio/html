@@ -136,7 +136,6 @@
                             this.show(pt.code);
                         }
                     } else {
-                        var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
                         if(pt.name == 'pt7'){
                             this.setMsg(pt, ''+msg.length, '1');
                         }else if(pt.name == 'pt4'){
@@ -150,8 +149,12 @@
                                 this.send_to(this.platforms[5], 'show');
                             }
                         }else if(pt.name == 'pt6') {
+                            /*
+                            var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
                             if((c.indexOf('inmessage:') < 0) || (c.indexOf('+=1') < 0)) return;
                             pt.fns[0][2] = msg.length;
+                            */
+                            pt.fns[0][2] = runCode(pt.code, msg);
                         }else if(pt.name == 'pt8') {
                             if(parseInt(msg) == this.platforms[7].fns[0][2]){
                                 this.platforms[5].fns[0][2] += 1;

@@ -130,7 +130,6 @@
                             this.show(pt.code);
                         }
                     } else {
-                        var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
                         if(pt.name == 'pt4'){
                             if(msg == 'generator'){
                                 this.send_to(this.platforms[8], 'show');
@@ -157,10 +156,14 @@
                         }else if(pt.name == 'pt7') {
                             //粗略验证是否这两个方法都用上了, 实际需要把每行代码转为js方法来执行
                             //这里是游戏没必要太认真,只需要明白原理就行了
+                            /*
+                            var c = pt.code.replace(/ /g,'').replace(/&nbsp;/g,'');
                             if((c.indexOf('int(') < 0) || (c.indexOf('len(') < 0)) return;
                             let a = parseInt(msg.substr(0, msg.indexOf(' ')));
                             let b = parseInt(msg.substr(msg.indexOf(' ')+1));
                             pt.fns[0][2] = Math.min(a, b);
+                            */
+                            pt.fns[0][2] = runCode(pt.code, msg);
                         }
                     }
                 }
