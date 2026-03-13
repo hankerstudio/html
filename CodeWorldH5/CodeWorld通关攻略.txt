@@ -1,0 +1,820 @@
+第0关: 初次认识code world
+机器人跑到门前,按enter键调出输入框, ctrl+->切换到向右方向, 发送show,
+可以看到代码, message='show'显示代码, message='open'门向上走100距离
+关掉代码显示,按回车继续输入open, 门向上打开一点点, 机器人还过不去,再发一次即可
+
+第1关: 操控门
+有两个门, 同理发送show查看代码, 
+第一个门可以发送数字, 不管发什么数字,
+最终会被限制在 -100 ~ 100之间, 发正数向上开门, 发负数向下开门,
+第二个门是发送up或down的指令两次即可
+
+第2关: 进一步操控门
+第一个门需要把机器人自己运到对岸,需要控制向右移动的距离, 一次不能移太大,不然掉下去了
+第二个门需要先下降一点高度发送down, 再让机器上跳到门上把自己运上去,发送up
+
+第3关: 新命令destroy
+第一个蓝门发送destroy, 第二个蓝门没有功能,只有show, 看红门,向上发送show,
+可以知道它可以销毁别人, 向它发向需要销毁的名称, 鼠标放到门上可以看到名称
+第二个蓝门的名称是wall, 所以走到红门下面向上发送wall即可销毁第二个蓝门
+
+第4关: 带条件的销毁
+有三个紫色门, 第一个门带有销毁别的门的功能, 但需要_value_=true
+当前为false, 只有 3 * i + 1 == 142 时才变true, 所以需要先发送47
+再发送, wall 2, wall 3, 先销毁后面两个门再发送wall 1销毁自己
+
+第5关: 数组
+这关也是三个紫门, 作者把门名称放到数组中去了, 
+victims = tuple ('killer', 'abc', '012', 'door', 'and', 'wall')
+我们只需要发送序号就行了, 依次发送 5, 3, 0
+
+第6关: 带条件的销毁
+两蓝门,一红门, 第一个蓝门销毁条件: 发送一个8位的字符串, 第3位是x, 我们直接发送xxxxxxxx即可
+第二个蓝门,可以修改自己名称, 不能销毁自己, 先看红门
+红门: 发送任意可以销毁名称为f_1024_f([])的门, 所以我们需要把第二个蓝门改成这个名称
+
+第7关: 精准数字
+一个蓝门+3个红门
+发送55给蓝门时,蓝门可以向第三个红门发送show, 可以先看到第三个红门的功能
+当接收数据为1000时销毁第一个红门, 999时销毁第二个红门, 497时销毁第三个红门
+第一个红门可以向右发送数字, 第二个红门无法查看, 所以我们先发送一个数字给第一个红门看看
+经测试我们容易发现, 第二个红门的功能是数字+9, 这样我们可以优先销毁第二个红门
+给第一个红门发送 (999 - 9) / 5 = 198
+再发送1000 / 5 = 200 (第二个门没了不会+9了)
+剩下第三个门了,直接发送 497 (需要跳起来发送哈)
+
+第8关: 线程检测销毁
+1个紫门+3个红门
+紫门的功能是一直循环检测3个红门是否存在, 如果都销毁了, 那自己也跟着销毁
+看红门sender, 当接收到destroy时可以销毁自己, 这个肯定不能先操作, 另外,
+还可以向指定方位发送destroy命令, 这个很有用, 因为另外两个红门在这个sender的左边和下边
+所以发送 left, down先销毁, 再发送 destroy销毁自己
+
+第9关: 
+3个紫门+2个红门
+右边紫门可以show的功能, 所以还得看上面4个门,
+两个紫门都是向上透传10~40之间的数字, 发送up可以查看上面两个红门的功能
+红门1: 数字+9 转发给 红门2, 数字为109时销毁右侧紫门
+红门2: 数字+17 转发给红门1, 数字为109时销毁右侧紫门
+x + n(9+17) = 109
+反推一下
+1. 109 = x + 9 + 17 => x = 83(不在10~40之间)
+2. 83 = x + 9 + 17 => x = 57 (也不在)
+3. 57 = x + 9 + 17 => x = 31 (在) 这是从红门1,2开始发都可以的,因为9,17都加了
+4. 31 = x + 17 => x = 14(在) 这是从红门2开始发
+5. 31 = x + 9 => x = 22(在) 这是从红门1开始发
+所以有3个答案, 红门1下面发22或31, 或是 红门2下面发14或31
+
+第10关: 查看就失效
+3个红门+1个紫门
+紫门: 当红<open>和红<free>的值都为true时, 向下移动250
+红<sender>: 可以查看左右门的功能, 分别发送left, right, 查看完其它功能失效, 需要shift一下重启本关
+红<open>: 当接收到的数据连接起来后=open自身的值就变为true
+红<free>: 当接收到的数据连接起来后=free自身的值就变为true
+我们再回顾一下红<sender>失效部分的功能: 当字符串长度大于7时,错位一位一位的把字符发送给左右两边
+再结合两边门的功能不难得出这个串为"ofpreene"
+
+第11关: 同名销毁
+1紫2红3黄,好多门, 一个个先查看功能吧, 分别show一下
+紫<door>: 也有查看就失效的功能, 需要重启本关, 失效功能为 可以销毁别的指定名称的门, 且只能发一次,
+红<sender>: 向右重复发送kill door
+黄<a>: 将名称改为接收到的数据
+黄<b>: 同上
+黄<c>: 同上
+红<killer>: 当接收到kill door时销毁紫<door>, 没人可以直接发送数据给它, 只能把前面3个黄门销毁掉
+让最前面的红门(一直会发送kill door这个)来发, 所以我们的目标已经很明确就是要销毁3个黄门
+从上面紫<door>的功能我们可以知道, 它可以销毁别人,且只有一次机会, 而黄<a>已经被红<sender>改名为kill door了
+所以黄<b>黄<c>也必须先改名为kill door, 到此功能全部分析完成,
+1. shift重启本关
+2. 黄<b>黄<c>改名为kill door
+3. 此时3个黄门的名称都叫kill door了, 向紫<door>发送kill door同时销毁3个黄门, 紫门自动销毁
+
+第12关: 新增功能edit
+门<door>: 支持编辑代码, 允许操作的方法有'show', 'edit', 'move', 'destroy',
+if message == 'open':
+        move ('up', 0)
+可以看到这两行代码, 让自己上移0肯定是有问题的, 我们发送edit, 让代码变成可编辑状态, 这时
+我们把move ('up', 0) 改成 move ('up', 250), 这样机器人就能通过了, 但后面还有一个门, 我们便可以
+用上destroy这个功能了, 最后一行添加 destroy('wall'), 最后三后代码变成:
+if message == 'open':
+    move ('up', 250)
+    destroy('wall')
+关闭代码, 发送open
+
+第13关: 简单计算
+1紫3红, 
+紫: if val1 * 2 + 1 > 14 and val2 * 3 - 5 < 20 and val1 < val2: 关键是这句
+分析可得 val1 = 7, val2 = 8
+红<sender>: 可以编辑代码, 但只允许有send一个方法可用, 可以分别改为 send('left', 'show')
+和 send('down', 'show'), 来查看左和下两个门的功能(查看完一个需要重启一下本关,再试另一个)
+可以发现 红<square 1>和红<square 2>的功能是一样的, 都是接收数据存到_value_中
+重启本关, 将红<sender>的代码修改为:
+if not initiated:
+    _name_ = 'sender'
+    _value_ = 0
+    initiated = True
+else:
+    send('left', '8')
+    send('down', '7')
+然后发送任意给红<sender>即可
+
+第14关: 逐个销毁
+1红3蓝
+蓝<A>: 可以看指定名称的门的功能, 可以给蓝<B>发送数字, 当接收到destroy时,
+如果蓝<B>蓝<C>不存在了,则可以销毁自己
+蓝<B>: 当接收到1230098时销毁自己
+蓝<C>: 当接收到702555时销毁自己
+红: 可以给蓝<C>发送任意数据
+1. 给红<sender>发送702555销毁蓝<C>
+2. 给蓝<A>发送1230098销毁蓝<B>
+3. 给蓝<A>发送destroy
+
+第15关: 字符串统计
+1红2绿
+绿<door>: 如果红<square>不存在,则上移250, 计算接收到字符串中v的个数,关键代码:
+if string == 'open' and count == 5:
+    initiated = False
+if string == 'show' and count == 2:
+    send_to ('square', 'show')
+if count == 3:
+    send_to ('square', string)
+先发送showvv来看红<square>的功能: 接收到9051就销毁自己
+所以需要给绿<door>发送9051vvv来销毁红<square>, 再发送 openvvvvv来上移自己
+这时我们通过第一个绿门了, 来到绿<wall>前, show一下,发现可以编辑代码, 但只允许edit一个方法
+我们就编辑允许更多的方法, 不需要太多,我们再添加一个destroy方法就行了
+将edit ('edit')改为 edit ('destroy'), 关闭代码, 发送任意重新进入编辑代码状态
+将edit ('destroy')改为 destroy('wall') 关闭代码, 发送任意销毁自己
+
+第16关: 编辑代码
+1红2绿, 红:edit ('move', 'destroy'), 就两个方法, 目的很明确,
+就是让红门把机器人驼到目的位置, 并销毁挡路的两个绿门, 代码修改为:
+if not initiated:
+    _name_ = 'elevator'
+    _value_ = 0
+    initiated = True
+else:
+    destroy('door') # two green door's name are all called 'door'
+    move ('up', 500)
+    move ('right', 600)
+注意: 其中数值500,600根据自己电脑配置进行调整~
+关闭代码,让机器人中间轮子对准门最右边, 发送任意给门, 这时门向上右移动, 
+机器人也要及时向右移动,不然就掉下去了, 门停下后, 
+机器人从左边向右冲跳到平台, 直接跳不过去
+
+第17关: 曲折的销毁
+3个蓝门, 右边蓝门没功能
+蓝<sender>: 可以查看蓝<square>功能, 也可以且一次发给数据给蓝<square>
+蓝<square>: 可以接收edit或数字, 
+因为蓝<square>在不可接触区域, 所以目前只能接收一次信息, 因为蓝<sender>只能发送一次
+所以我们优先让蓝<sender>发送数字给蓝<square>, 让它移动到可接触区域来,
+多次尝试得到向右移500比较合适,所以发送500, 这时蓝<square>跑到中间来了, 我们可以直接
+给它发数据了, 发送edit给蓝<square>, 修改代码为:
+if not initiated:
+    _name_ = 'square'
+    _value_ = 0
+    initiated = True
+else:
+    edit ('destroy')
+关闭再发任意继续修改代码:
+if not initiated:
+    _name_ = 'square'
+    _value_ = 0
+    initiated = True
+else:
+    destroy('door')
+关闭再发任意销毁蓝<door>
+    
+
+第18关: 计算字符串长度
+1红2蓝2绿
+红<door>有查看所有门的功能,一一查看
+绿<generator>: 每秒生成一个随机长度(1~10位)的字符串(包含x,o)并发向下方与右方
+蓝<len>: 计算字符串长度发向右方
+蓝<f>: 需要修改代码自己实现计算长度的功能
+绿<compare>: 比较蓝<len>与蓝<f>两个门的长度值是否一样
+因为<f>中edit()内没有方法, 也就是新代码中不能使用len(message), 修改如下:
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+1).
+    _value_ = 0
+    for c in message:
+        _value_ += 1
+2).        
+    i = 0
+    while message[i] != '':
+        i += 1
+    _value_ = i
+3).    
+    _value_ = 0
+    while message[_value_] != '':
+        _value_ += 1
+
+第19关: 获取小的数
+与上关相同布局, 允许使用方法edit ('int', 'len')
+<<f>>代码:
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    v = ''
+    i = 0
+    while message[i] != ' ':
+        v += message[i]
+        i += 1
+    i += 1
+    _value_ = int(v)
+    v = ''
+    while i < len(message):
+        v += message[i]
+        i += 1
+    if int(v) < _value_:
+        _value_ = int(v)
+
+第20关: 每位数字相加
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    _value_ = 0
+    while message > 0:
+        _value_ += message % 10
+        message = (message - message % 10) / 10
+        
+第21关: 精准控制
+鼠标需要放在sum这个方块上,实时察看其value值, 到30~40之间时,
+机器人马上向上发送0, 连续5次不能出错~ 否则shift一下重来游戏
+
+第22关: 重复数字
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    _value_ = 0
+    for i in range(message):
+        _value_ *= 10
+        _value_ += message
+
+第23关: 平方根
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    i = 0
+    while i * i <= message:
+        i += 1
+        if i * i == message:
+            _value_ = i
+
+第24关: 计算
+向上输入70*n, 向右输入6*n, 其中n是正整数
+上 * 3 = 右 * 35
+上,右必须是偶数
+所以上,右的最小公倍数是 35 * 3 * 2 = 210
+所以最小的上,右 => 70, 6
+
+第25关: 删除空格
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    s = ''
+    for c in message:
+        if c != ' ':
+            s += c
+    _value_ = s
+
+
+第26关: 找规律
+<<generator>>中count=2说明只能输入2次数据
+<<killer>>中数组有5个值(8, 47, 50, 86, 125),  8=>47=>86=>125 都是递增39, 
+差一个50, 与125 是25的倍数, 所以两个输入值分别是与39和25有关,
+如果先输入39,或-39, 都无法满足要求, 所有第一个必须是25
+第一个值是25, 第二值是-39(当<<generator>>发送125后马上输入-39)
+
+第27关: 字符串反转
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    s = ''
+    for c in message:
+        s = c + s
+    _value_ = s
+
+第28关: 机器人状态控制
+从<<door>>代码分析可知,只有机器人跳起来后,门才会对应升起来, 机器人下落,门也会下落, 
+所以要我们做到机器人跳起来后不能落下去, 关键点在于小块的位置, 经过多次尝试,
+小块的位置在20,30左右的高度时, 机器人上跳后,马上到达小块上并马上走到小块上面不让自己下落,
+这时门就不会下掉了
+
+第29关: 阶乘 n!
+range(n) => 0 ~ n-1 注意需要+1
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    _value_ = 1
+    for i in range(message):
+        _value_ *= i+1
+
+第30关: 双向乘
+左*2, 右*3, 最终=1836
+输入得10~40之间, 1836 / 6 / 6 = 51
+这时51无法再/6, 且是奇数, 所以只能在右侧/3 = 17
+所以右侧输入17, 左侧无法输入完成
+
+第31关: 斐波那契 (0,1,1,2,3,5,8,...)
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    if message < 2:
+        _value_ = message
+    else:
+        if message == 2:
+            _value_ = 1
+        else:
+            v = 0
+            a = 1
+            b = 1
+            for i in range(message-2):
+                v = a + b
+                a = b
+                b = v
+            _value_ = v
+
+
+第32关: 是否质数
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    m = message
+    if m < 2:
+        _value_ = 'no'
+    else:
+        if m == 2:
+            _value_ = 'yes'
+        else:
+            if m % 2 == 0:
+                _value_ = 'no'
+            else:
+                j = 1
+                i = 0
+                while i * i < m:
+                    i += 1
+                if i * i == m: # because of range is 0 to n-1
+                    i += 1
+                for c in range(i):
+                    if c > 2:
+                        if m % c == 0:
+                            j = 0
+                if j == 1:
+                    _value_ = 'yes'
+                else:
+                    _value_ = 'no'
+
+第33关: 控制位置
+<<sender 1>>
+if not initiated:
+    _name_ = 'sender 1'
+    _value_ = 0
+    initiated = True
+else:
+    send('right', 'a')
+    sleep(2000)
+    send('right', 'a')
+    sleep(10000)
+    send('right', 'a')
+    
+<<sender 2>>
+if not initiated:
+    _name_ = 'sender 2'
+    _value_ = 0
+    initiated = True
+else:
+    send('right', 'a')
+    sleep(2000)
+    send('right', 'a')
+
+向门发送 sender 1, 等待上面两个下来后, 下面就变成三个了, 接着(10秒完成,可以时间改长一点)
+再向门发送 sender 2, 让下面的前面两个上去, 
+最后, 等待到第一个sender 1的10秒后,上面第一个再下来, 接着再发送任意给门就可以打开了
+
+第34关: 重复字符串
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    v=0
+    s=''
+    i = 0
+    while message[i] != ' ':
+        s += message[i]
+        i += 1
+    v = int(s)
+    s = ''
+    i += 1
+    while i < len(message):
+        s += message[i]
+        i += 1
+    _value_ = ''
+    for i in range(v):
+        _value_ += s
+
+第35关: 逐个突破
+<<a>> 数字 % 5 = 0, 并向上发送 数字 / 5, 接收~ 向左
+<<b>> 数字 % 160 = 0, 并向上发送 数字 / 160 接收~ 向右
+<<c>> 数字 % 25 = 0, 并向上发送 数字 / 25 接收~ 向左
+<<d>> 接收到数字就向下发送~, 接收任意字符串就销毁门
+分析可知, 只需要向<<a>>发送20000倍数的数就可以让<<d>>成功接收到数字
+等到<<a>><<b>><<c>>向左右让开后,就可以发送任意字符给<<d>>完成任务
+
+第36关: 同时销毁
+向<<b>>发送show, 修改代码为:
+if not initiated:
+    _name_ = 'b'
+    _value_ = 0
+    initiated = True
+else:
+    send('left','a')
+    send('right','a')
+再向<<b>>发送任意
+
+第37关: 累加
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    s = ''
+    v = 0
+    for c in message:
+        if c != ' ':
+            s += c
+        else:
+            v += int(s)
+            s = ''
+    _value_ = v + int(s)
+
+
+第38关: 二进制转十进制
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    v = 0
+    for c in str(message):
+        v *= 2
+        if c == '1':
+            v += 1
+    _value_ = v
+
+
+第39关: 控制上移距离
+只需要向<<sender>>发送100多的数字就可以把<<a>><<b>><<c>><<d>>都销毁掉,门自然打开
+
+第40关: 控制间隔时间
+<<sender 1>> 发送xxaaaax
+<<sender 2>> 发送aaaaxx
+<<door>> 发送 数字
+等待右上三个完成
+<<door>> 发送任意, 门开
+
+第41关: 最大公约数
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    a = 0
+    b = 0
+    s = ''
+    i = 0
+    while message[i] != ' ':
+        s += message[i]
+        i += 1
+    a = int(s)
+    s = ''
+    i += 1
+    while i < len(message):
+        s += message[i]
+        i += 1
+    b = int(s)
+    if b > a:
+        i = b
+        b = a
+        a = i
+    while b > 0:
+        i = a % b
+        a = b
+        b = i
+    _value_ = a
+
+第42关: 计算
+由<<door>>发送数字给<<sender>>分发到<<f1>><<f2>>, 再由<<f1>><<f2>>分别计算后
+分别把结果发给<<compare>>,最后由<<compare>>累加这两个值是否等于2610后开门
+<<f1>>计算公式: 将数字的平方减去每一位相加, 如: 123 => 123*123-(1+2+3) = 15123
+<<f2>>计算公式: 将数字倒序重组成新数字, 如: 123 => 321
+结果是2610,为4位数, 所以输入的数只能2位, 2610开根大约是51, 
+51 * 51 - 6 + 15 = 2610(刚好)
+还有没有别的可能? 继续尝试
+53 * 53 - 8 + 35 = 2827
+52 * 52 - 7 + 25 = 2722
+50 * 50 - 5 + 05 = 2500
+49 * 49 - 13 + 94 = 2482
+分析可知, 大于51结果将比2610越来越大, 小于51结果将比2610越来越小,
+所以答案只能有一个就是51
+
+第43关: 验证括号合法性
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    l = len(message)
+    i = 0
+    if l % 2 == 1:
+        _value_ = 'no'
+    else:
+        if message[l-1] == '(':
+            _value_ = 'no'
+        else:
+            if message[0] == ')':
+                _value_ = 'no'
+            else:
+                f = 0
+                for c in message:
+                    if c == '(':
+                        i += 1
+                    if c == ')':
+                        i -= 1
+                        if i < 0:
+                            f = 1
+                if f == 0 and i == 0:
+                    _value_ = 'yes'
+                else:
+                    _value_ = 'no'
+        
+
+第44关: 在一定距离内追上~
+经过多次尝试可得发送数值在 1000多可以过关, 应该每台电脑cpu不一样,
+执行的速度的都不一样, 所以可以多尝试几次, 运行完看值再调整就可以
+
+第45关: 控制<<sender>>
+调整<<sender>>位置来达到右上三个位置调整
+if not initiated:
+    _name_ = 'sender'
+    _value_ = 0
+    initiated = True
+else:
+    move("up", 200)
+    sleep(2000)
+    send("right", 'move')
+    sleep(1000)
+    send('right', 'move')
+    move('down', 200)
+    sleep(2000)
+    send('right', 'move')
+    sleep(1000)
+    send('right', 'move')
+    move('up', 200)
+    sleep(2000)
+    send('right', 'move')
+
+
+第46关: 精准控制
+向<<elevator>>发送 ru, rd, ru就可以了,每次只能发送两个字母, 
+同时注意机器人向右走别掉下去了就行, 两个ru也可以跳过去
+
+第47关: 计算器
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    i = 0
+    f = ''
+    v = ''
+    while message[i] != ' ':
+        v += message[i]
+        i += 1
+    i += 1
+    _value_ = int(v)
+    v = ''
+    while message[i] != ' ':
+        f = message[i]
+        i += 1
+    i += 1
+    while i < len(message):
+        v += message[i]
+        i += 1
+    i = int(v)
+    if f == '+':
+        _value_ += i
+    else:
+        if f == '-':
+            _value_ -= i
+        else:
+            if f == '*':
+                _value_ *= i
+            else:
+                if f == '/':
+                    _value_ = int(_value_ / i)
+        
+
+第48关: 排序
+<<f>>
+if not initiated:
+    _name_ = 'f'
+    _value_ = False
+    initiated = True
+else:
+    t = tuple()
+    t1 = tuple()
+    t2 = tuple()
+    v = ''
+    _value_ = ''
+    for c in message: # split msg by blank char
+        if c != ' ':
+            v += c
+        else:
+            t += tuple(int(v))
+            v = ''
+    t += tuple(int(v))
+    while len(t2) < len(t):
+        i = 0
+        k = 0
+        v = 999
+        while i < len(t):
+            f = 0
+            for c in t2: # jump out the index which is used
+                if c == i:
+                    f = 1
+            if t[i] < v and f == 0:
+                v = t[i]
+                k = i
+            i += 1
+        t1 += tuple(v) # record the correct value which is sorted
+        t2 += tuple(k) # record the index of the used value
+    v = ''
+    for c in t1: # join all the sorted value by blank char
+        if v != '':
+            v += ' '
+        v += str(c)
+    _value_ = v
+
+
+
+第49关:
+这关是不是无解呢?
+分析: 
+<<door>> flag = false, 如果要变为true, 则需要从_value_(a)中获取10次不同的值,
+<<a>> 中_value_ = true, 无法接收数据, 所以无法修改值
+<<b>><<c>><<d>>三个_value_ = 0, 都无法改值
+如果换<<door>>中_value_值, count=0,
+
+将<<door>>中倒数第二行代码 if flag and message < 100: 改为 if not flag and message < 100:
+也可以将 count = 0 这行前面加个# => # count = 0 注释掉这行(去掉这行),
+如果是这个改法则需要先向<<door>>发送5组以上value b, value a(其它方块名称也行,只要会改变值的就可以), 
+使其flag变为true, 再发送下面的数字
+不看flag状态, 直接分析需要达到结果的数值1305, 需要发送31/72给<<door>>
+数字走向: c + 3 -> a + m -> b + 1 -> m, d + 2 -> c
+
+1. 1305 = m(b+1) + (c+3)(b+1 + 2 + 3) => b = 649
+2. 649 = b+1 + b+1 + 2 + 3 => b = 321
+3. 321 = b+1 + b+1 + 2 + 3 => b = 157
+4. 157 = b+1 + b+1 + 2 + 3 => b = 75 => 75 - 3 = 72 (100以内一个值)
+5. 75 = b+1 + b+1 + 2 + 3 => b = 34 => 34 - 3 = 31 (也在100内)
+6. 34(不是奇数不可再轮一次)
+
+door:
+if not initiated:
+    _name_ = 'door'
+    _value_ = 'a'
+    initiated = True
+    flag = False
+    count = 0
+    old_val = 0
+    while not flag:
+        sleep (100)
+        new_val = get_value (_value_)
+        if old_val != new_val:
+            old_val = new_val
+            count += 1
+            if count >= 10:
+                flag = True
+else:
+    if type (message) == 'str':
+        if message == 'show':
+            show ()
+        else:
+            s1 = ''
+            s2 = ''
+            first = True
+            for c in message:
+                if c == ' ':
+                    first = False
+                else:
+                    if first:
+                        s1 += c
+                    else:
+                        s2 += c
+            if s1 == 'show':
+                send_to (s2, s1)
+            if s1 == 'value':
+                if exists (s2):
+                    _value_ = s2
+                    count = 0
+    else:
+        if flag and message < 100:
+            send ('up', message)
+
+
+a:
+if not initiated:
+    _name_ = 'a'
+    _value_ = True
+    initiated = True
+    m = 0
+else:
+    if message == 'show':
+        show ()
+    else:
+        if message < 1000:
+            if _value_:
+                send ('right', message + m)
+            else:
+                m = message
+            _value_ = not _value_
+
+b:
+if not initiated:
+    _name_ = 'b'
+    _value_ = 0
+    initiated = True
+else:
+    if message == 'show':
+        show ()
+    else:
+        if message < 1000:
+            send ('down', message + 1)
+            send ('left', message + 1)
+        if message == 1305:
+            destroy ('door')
+
+c:
+if not initiated:
+    _name_ = 'c'
+    _value_ = 0
+    initiated = True
+else:
+    if message == 'show':
+        show ()
+    else:
+        if message < 1000:
+            send ('up', message + 3)
+
+d:
+if not initiated:
+    _name_ = 'd'
+    _value_ = 0
+    initiated = True
+else:
+    if message == 'show':
+        show ()
+    else:
+        if message < 1000:
+            send ('left', message + 2)
+
+
+
+        
