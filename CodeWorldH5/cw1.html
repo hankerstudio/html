@@ -90,7 +90,7 @@
             { title:'地板',name:'pt2', x: 660, y: 506, des:false, width: 300, height: 160, color: '#34260D', border: '#803C20' },
             { title:'地板',name:'pt3', x: 939, y: 373, des:false, width: 237, height: 291, color: '#34260D', border: '#803C20' },
             { title:'门',name:'pt4', x: 363, y: 350, des:false, width: 95, height: 147, color: '#620078', border: '#A800BE', fns:[['show','door',0],['(^\\d*$)']], code:"if not initiated:<br>&nbsp; _name_ = 'door'<br>&nbsp; _value_ = 0<br>&nbsp; initiated = True<br>else:<br>&nbsp; if message == 'show':<br>&nbsp; &nbsp; show ()<br><br>&nbsp; if type(message) == 'int':<br>&nbsp; &nbsp; message = min (message, 100)<br>&nbsp; &nbsp; message = max (message, -100)<br>&nbsp; &nbsp; _value_ += message<br>&nbsp; &nbsp; move ('up', message)<br>" },
-            { title:'门',name:'pt5', x: 655, y: 350, des:false, width: 95, height: 147, color: '#6E0A17', border: '#AE101A', fns:[['show','wall',0],['up']], code:"if not initiated:<br>&nbsp; _name_ = 'wall'<br>&nbsp; _value_ = 0<br>&nbsp; initiated = True<br>else:<br>&nbsp; if type(message) == 'str':<br>&nbsp; &nbsp; if message == 'show':<br>&nbsp; &nbsp; &nbsp; show ()<br>&nbsp; &nbsp; else:<br>&nbsp; &nbsp; &nbsp; move (message, 100)<br>" }
+            { title:'门',name:'pt5', x: 655, y: 350, des:false, width: 95, height: 147, color: '#6E0A17', border: '#AE101A', fns:[['(.*)','wall',0]], code:"if not initiated:<br>&nbsp; _name_ = 'wall'<br>&nbsp; _value_ = 0<br>&nbsp; initiated = True<br>else:<br>&nbsp; if type(message) == 'str':<br>&nbsp; &nbsp; if message == 'show':<br>&nbsp; &nbsp; &nbsp; show ()<br>&nbsp; &nbsp; else:<br>&nbsp; &nbsp; &nbsp; move (message, 100)<br>" }
         ];
         
         // 启动游戏
@@ -108,13 +108,12 @@
                     if((msg == 'show') && (pt.hasOwnProperty('code'))){
                         this.show(pt.code);
                     } else {
-                        var val = parseInt(msg);
-                        if(msg == 'up') {
-                            val = 100;
+                        if(pt.name == 'pt4') {
+                            var val = parseInt(msg) * 0.8;
+                            this.move(pt, 'up', val);
+                        } else if(pt.name == 'pt5') {
+                            this.move(pt, msg, 80);
                         }
-                        val *= 0.8; //实际移动没有那么大,这里打8折^_^
-                        var i = 0;
-                        this.move(pt, 'up', val);
                     }
                 }
             }

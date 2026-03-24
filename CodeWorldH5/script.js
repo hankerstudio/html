@@ -576,6 +576,8 @@ class CodeWorldGame {
                 pt.y -= spd;
             }else if(dir == 'down'){
                 pt.y += spd;
+            }else{
+                return;
             }
             if(i++ > num / 4) {
                 clearInterval(itv);
