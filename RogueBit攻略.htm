@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RogueBit 攻略</title>
+<style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f6f7f9;
+      color: #24292f;
+      font: 16px/1.8 "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+    main { max-width: 780px; margin: 0 auto; padding: 36px 20px 80px; }
+    h1 {
+      margin: 0 0 28px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e3e6ea;
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: .5px;
+    }
+    p.step {
+      margin: 16px 0;
+      padding: 10px 16px;
+      background: #fff;
+      border-left: 3px solid #4c8bf5;
+      border-radius: 0 6px 6px 0;
+    }
+    figure.shot { margin: 22px 0; text-align: center; }
+    figure.shot img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #e3e6ea;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+    }
+    @media (max-width: 600px) {
+      main { padding: 24px 14px 60px; }
+      body { font-size: 15px; }
+    }
+</style>
+</head>
+<body>
+<main>
+<h1>RogueBit 攻略</h1>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略0.png" width="553" height="325" alt="RogueBit 游戏截图 1" loading="lazy" decoding="async"></figure>
+<p class="step">按C开始游戏(continue), 其它快捷键(M:菜单, wasd:方向,方向键也行,X:游戏中提示)</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略55.png" width="553" height="292" alt="RogueBit 游戏截图 2" loading="lazy" decoding="async"></figure>
+<p class="step">按方向键一直向右边走</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略68.png" width="553" height="292" alt="RogueBit 游戏截图 3" loading="lazy" decoding="async"></figure>
+<p class="step">从右侧这边下去</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略78.png" width="553" height="292" alt="RogueBit 游戏截图 4" loading="lazy" decoding="async"></figure>
+<p class="step">从这个角落进框里</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略89.png" width="554" height="310" alt="RogueBit 游戏截图 5" loading="lazy" decoding="async"></figure>
+<p class="step">从这边框进去吃紫块,再回来边框下去通过下面一行</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略115.png" width="553" height="292" alt="RogueBit 游戏截图 6" loading="lazy" decoding="async"></figure>
+<p class="step">这是一个迷宫,就是一个劲的尝试即可,可以像这样标记一下哪些路可走</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略150.png" width="553" height="292" alt="RogueBit 游戏截图 7" loading="lazy" decoding="async"></figure>
+<p class="step">从上面拐一下就可以过去,X会闪, 一显一隐, 当隐藏时,马上走过去即可</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略188.png" width="553" height="292" alt="RogueBit 游戏截图 8" loading="lazy" decoding="async"></figure>
+<p class="step">从这走下去会自动跳过去</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略202.png" width="553" height="292" alt="RogueBit 游戏截图 9" loading="lazy" decoding="async"></figure>
+<p class="step">走到这边发现是没路可走了, 这里可以按住X键可以看到The后面有个蓝块, 这个是隐藏地址, 走到这里即可跳到下一块</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略262.png" width="553" height="292" alt="RogueBit 游戏截图 10" loading="lazy" decoding="async"></figure>
+<p class="step">同理按下X键发现三个隐藏地址,走到相应位置可以尝试对应功能, 按上下键两三次</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略303.png" width="553" height="292" alt="RogueBit 游戏截图 11" loading="lazy" decoding="async"></figure>
+<p class="step">来到这里发现路又被堵了,X键可知跟上面的钥匙有关, 分别走到上面的隐藏位置会一对一的搬走”GATE”</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略356.png" width="553" height="292" alt="RogueBit 游戏截图 12" loading="lazy" decoding="async"></figure>
+<p class="step">中上有显示当前”@”的内存位置(即游戏用户当前位置), 右侧为汇编指令区域,可以看到第一行代码是要求用户走到这个位置然后下一行比较这个位置的数值是否为0x40, 走到上图位置时再按一下向下键,可以看到右上角的Data变成40了,如下图:</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略477.png" width="553" height="292" alt="RogueBit 游戏截图 13" loading="lazy" decoding="async"></figure>
+<p class="step">这时用户(@)处于隐藏状态,这个不用管,继续按任意方向键可以看到,用户跳到字母G的位置上了,</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略526.png" width="553" height="292" alt="RogueBit 游戏截图 14" loading="lazy" decoding="async"></figure>
+<p class="step">走开后,G跑到上面钥匙对应的位置上去了</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略548.png" width="553" height="292" alt="RogueBit 游戏截图 15" loading="lazy" decoding="async"></figure>
+<p class="step">同理看右侧代码中的地址, 走到对应的位置搬走剩下三个字母</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略579.png" width="553" height="292" alt="RogueBit 游戏截图 16" loading="lazy" decoding="async"></figure>
+<p class="step">这样就全部搬走了</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略590.png" width="553" height="292" alt="RogueBit 游戏截图 17" loading="lazy" decoding="async"></figure>
+<p class="step">这里也同上操作,看右侧代码地址,走到对应位置,重复操作即可</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略622.png" width="553" height="292" alt="RogueBit 游戏截图 18" loading="lazy" decoding="async"></figure>
+<p class="step">多搬了几次,成这样了, 不影响, 能走上去即可</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略648.png" width="553" height="292" alt="RogueBit 游戏截图 19" loading="lazy" decoding="async"></figure>
+<p class="step">这里卡了很久(一开始不知道右侧代码的含义乱走了很久)</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略677.png" width="553" height="292" alt="RogueBit 游戏截图 20" loading="lazy" decoding="async"></figure>
+<p class="step">用户要站在这里一直按上下键(随意),不能按左右键,直接到左边字母为三行一样时,这里的Data值就是6d,,然后一直按左键就跳过去了</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略745.png" width="553" height="292" alt="RogueBit 游戏截图 21" loading="lazy" decoding="async"></figure>
+<p class="step">继续前行</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略752.png" width="553" height="292" alt="RogueBit 游戏截图 22" loading="lazy" decoding="async"></figure>
+<p class="step">这里按个X, 是明文的迷宫, 简单通过</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略774.png" width="553" height="292" alt="RogueBit 游戏截图 23" loading="lazy" decoding="async"></figure>
+<p class="step">走到这个位置左侧门才能打开, 也是尝试了很久</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略799.png" width="553" height="292" alt="RogueBit 游戏截图 24" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略801.png" width="553" height="292" alt="RogueBit 游戏截图 25" loading="lazy" decoding="async"></figure>
+<p class="step">走到这个位置, 它要求的436f没办法去,走到这里可以看到比较条件变了,按下键几次,条件成立,往下执行代码</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略857.png" width="553" height="292" alt="RogueBit 游戏截图 26" loading="lazy" decoding="async"></figure>
+<p class="step">可以看到这个门变化了, 我们就从这里”爬”进去</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略883.png" width="553" height="292" alt="RogueBit 游戏截图 27" loading="lazy" decoding="async"></figure>
+<p class="step">左侧漫长通道的尽头有个紫块可以吃, 吃完再回来,</p>
+<p class="step">一路上都提示出口在右侧(Exit to the right &gt;&gt;&gt;)</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略946.png" width="553" height="292" alt="RogueBit 游戏截图 28" loading="lazy" decoding="async"></figure>
+<p class="step">走到这里发现无路了, X键发现有三个隐藏,尝试各种操作, 发现最上面那个一直按右,最下面的地址会向右移动, 那就让它移到最右看看(走到最上面,死循环按右, 一定时间后下来看到最右了没)</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1041.png" width="553" height="292" alt="RogueBit 游戏截图 29" loading="lazy" decoding="async"></figure>
+<p class="step">只要看这个值就行,这个值大于ef, 就可以按左键走出来去中间那个隐藏地址按右键就可以直接跳下去了, 不用自己走远路下去</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1103.png" width="553" height="292" alt="RogueBit 游戏截图 30" loading="lazy" decoding="async"></figure>
+<p class="step">待在这个位置旁边一直按左右键, 当data&gt;=39时循环一次加1,当data&lt;39时循环一次加41,下面代码提示,大于或等于39就继续对比, data &gt; a0 就能跳到最下面的代码执行, 否则会在上半段一直死循环, 所以data=a0-41只要在60到78之间应该都可以, 所以一开始得先跑到上一行的C9的9那边让data累加到60~78之间时跑回上图位置,让累加值变回41,这样下一次循环后的结果就会大于a0</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1312.png" width="553" height="292" alt="RogueBit 游戏截图 31" loading="lazy" decoding="async"></figure>
+<p class="step">门没了</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1317.png" width="553" height="292" alt="RogueBit 游戏截图 32" loading="lazy" decoding="async"></figure>
+<p class="step">这个位置多跑几次X就变值了,就成一个可以通过的就可以</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1345.png" width="553" height="292" alt="RogueBit 游戏截图 33" loading="lazy" decoding="async"></figure>
+<p class="step">左侧也有一个X挡住,得回到上一图的中间第三行地方改这个值,再回来门就可以过了操作跟上图差不多, 过了门,又来一个差不多的, 那就一样的操作,看右侧代码提示跟数值的变化,</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1432.png" width="553" height="292" alt="RogueBit 游戏截图 34" loading="lazy" decoding="async"></figure>
+<p class="step">当Data=F7时上移,此时会变成第次加41, F7+41=38就能满足跳转条件</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1475.png" width="553" height="292" alt="RogueBit 游戏截图 35" loading="lazy" decoding="async"></figure>
+<p class="step">左边有挡,按X键提示右侧上方有隐藏地址,可以到对应地址操作一下看变化</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1512.png" width="135" height="196" alt="RogueBit 游戏截图 36" loading="lazy" decoding="async"></figure>
+<p class="step">多次操作后可以看到Data的值会从40~45之间变化, 与40对比前一行的地址也会跟着data的值变化,40c8~45c8, 所以当执行到这一行时,@的位置刚好在这个地址上时就可以开门通过</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1609.png" width="553" height="292" alt="RogueBit 游戏截图 37" loading="lazy" decoding="async"></figure>
+<p class="step">到这里是死路, 有个隐藏地址, 直接走上去就通过了</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1637.png" width="553" height="292" alt="RogueBit 游戏截图 38" loading="lazy" decoding="async"></figure>
+<p class="step">这里被框在这里面了,怎么都走不出来, 只能乱尝试了, 键盘上所有按键都按了一遍(先前百度都找不到相关攻略,只能自己乱试, 后面才知道外网是有教程视频,但全英文的听不懂,但有点作用,可以看界面变化猜一些操作), 在这个界面按下上键都会有切换界面的效果,按C键也有切换效果, 根据切换后的效果看, 上下键应该是预览各界面用的,不能操作移动@, C键切换完界面可以操作移动@,</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1825.png" width="553" height="330" alt="RogueBit 游戏截图 39" loading="lazy" decoding="async"></figure>
+<p class="step">往下移到线上时按C键切换界面后又可以移动了,可以继续下移</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1856.png" width="553" height="330" alt="RogueBit 游戏截图 40" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1858.png" width="553" height="330" alt="RogueBit 游戏截图 41" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1860.png" width="553" height="330" alt="RogueBit 游戏截图 42" loading="lazy" decoding="async"></figure>
+<p class="step">走到这里按下键切换界面看到墙出了一个口子</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1883.png" width="553" height="330" alt="RogueBit 游戏截图 43" loading="lazy" decoding="async"></figure>
+<p class="step">此时按上键切回界面,再按右键走出隐藏地址再按C键切换界面可以看到缺口还在,那就往下走到这里</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1931.png" width="553" height="330" alt="RogueBit 游戏截图 44" loading="lazy" decoding="async"></figure>
+<p class="step">就这样按C键来回切,就可以走到这里了,继续切界面往下走吃红块</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1964.png" width="553" height="330" alt="RogueBit 游戏截图 45" loading="lazy" decoding="async"></figure>
+<p class="step">只有这个角落能往下走</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略1977.png" width="553" height="330" alt="RogueBit 游戏截图 46" loading="lazy" decoding="async"></figure>
+<p class="step">要过去吃紫块, 被挡过不去,切回界面去操作</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2001.png" width="553" height="330" alt="RogueBit 游戏截图 47" loading="lazy" decoding="async"></figure>
+<p class="step">有隐藏地址就有操作空间</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2015.png" width="553" height="330" alt="RogueBit 游戏截图 48" loading="lazy" decoding="async"></figure>
+<p class="step">按右几次到这个界面的这行代码,然后的操作就是(下下右,上上右),具体如下:按下键一次</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2060.png" width="553" height="330" alt="RogueBit 游戏截图 49" loading="lazy" decoding="async"></figure>
+<p class="step">看到这个界面再看一次下键</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2075.png" width="553" height="330" alt="RogueBit 游戏截图 50" loading="lazy" decoding="async"></figure>
+<p class="step">到这个界面与右侧代码区的这行,此时按右键一次往下执行一行代码</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2108.png" width="553" height="330" alt="RogueBit 游戏截图 51" loading="lazy" decoding="async"></figure>
+<p class="step">这里按向上键一次</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2119.png" width="553" height="330" alt="RogueBit 游戏截图 52" loading="lazy" decoding="async"></figure>
+<p class="step">再按上一次</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2127.png" width="553" height="330" alt="RogueBit 游戏截图 53" loading="lazy" decoding="async"></figure>
+<p class="step">回到这个界面的这一行代码, 然后再按一次右键就可以走到m的右侧了</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2162.png" width="553" height="330" alt="RogueBit 游戏截图 54" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2164.png" width="553" height="330" alt="RogueBit 游戏截图 55" loading="lazy" decoding="async"></figure>
+<p class="step">按C键切换界面</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2174.png" width="553" height="330" alt="RogueBit 游戏截图 56" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2176.png" width="553" height="330" alt="RogueBit 游戏截图 57" loading="lazy" decoding="async"></figure>
+<p class="step">吃完紫块往上走,再进框内吃红块,游戏通关</p>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2199.png" width="553" height="330" alt="RogueBit 游戏截图 58" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2201.png" width="553" height="330" alt="RogueBit 游戏截图 59" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2204.png" width="553" height="330" alt="RogueBit 游戏截图 60" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2206.png" width="553" height="330" alt="RogueBit 游戏截图 61" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2208.png" width="553" height="330" alt="RogueBit 游戏截图 62" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2210.png" width="553" height="330" alt="RogueBit 游戏截图 63" loading="lazy" decoding="async"></figure>
+<figure class="shot"><img src="RogueBitImgs/RogueBit攻略2212.png" width="553" height="330" alt="RogueBit 游戏截图 64" loading="lazy" decoding="async"></figure>
+</main>
+</body>
+</html>
